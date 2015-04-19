@@ -19,6 +19,7 @@ int main(int argc, char **argv){
 
   request_name();
 
+  init_critical();
   init_level();
 
   run_loop();

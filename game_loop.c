@@ -27,12 +27,21 @@ char health_string[32] = {0};
 float display_x_offset = 0.0f;
 
 inline void add_platform(cpVect position){
-  add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, "Platform.png", RENDER_NUM_LAYERS - 2);
+  add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, 2, RENDER_NUM_LAYERS - 2);
 }
 
 inline void add_hole(cpVect position){
-  ENT_NODE *temp = add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, NULL,  RENDER_NUM_LAYERS - 2);
+  ENT_NODE *temp = add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, 0,  RENDER_NUM_LAYERS - 2);
   bind_trigger(temp, cpFalse);
+}
+
+/* Load critical resources, such as background image,
+ * platform textures and player ball.
+ */
+void init_critical(){
+  precache_bitmap("Background_space.jpeg");
+  precache_bitmap("Platform.png");
+  precache_bitmap("Ball.png");
 }
 
 /* TODO: Fix double spawn of the player somehow */
@@ -44,20 +53,19 @@ void init_level(){
   gen_chunk();
   /* Add background
      NOTE TO SELF: Kludge powers activate! */
-  add_entity_nophys(cpv(renderer.view_width/2.0 + 2.0*renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, "Background_space.jpeg", 0);
-  add_entity_nophys(cpv(-renderer.view_width/2.0 - renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, "Background_space.jpeg", 0);
+  add_entity_nophys(cpv(renderer.view_width/2.0 + 2.0*renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
+  add_entity_nophys(cpv(-renderer.view_width/2.0 - renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
 
-  add_entity_nophys(cpv(renderer.view_width/2.0, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, "Background_space.jpeg", 0);
-  add_entity_nophys(cpv(renderer.view_width/2.0 + renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, "Background_space.jpeg", 0);
+  add_entity_nophys(cpv(renderer.view_width/2.0, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
+  add_entity_nophys(cpv(renderer.view_width/2.0 + renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
 
-  add_entity_nophys(cpv(-renderer.view_width/2.0, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, "Background_space.jpeg", 0);
+  add_entity_nophys(cpv(-renderer.view_width/2.0, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
   /* Add timer and a bar */
   add_entity_bar(cpv(100, 100), renderer.view_width * 0.7, 30, &timeleft, RENDER_NUM_LAYERS - 1);
 
-  load_skin("Ball.png");
   /* Kludge master */
   spawn(NULL);
-  temp = add_entity_mobile(cpv(40.0, 100.0), single_player.radius, single_player.mass, single_player.skin, RENDER_NUM_LAYERS -2);
+  temp = add_entity_mobile(cpv(40.0, 100.0), single_player.radius, single_player.mass, 3, RENDER_NUM_LAYERS -2);
   spawn(temp->body);
 
 

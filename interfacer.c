@@ -7,13 +7,16 @@
  * Provides us with convenient way to add entities to the game
  * We can add player, NPC, platform, trigger and text to the game field
  */
-
+BITMAP_PLAIN *plaint_bitmap_list = NULL;
+unsigned int bitmap_counter = 0;
 ENT_NODE *ent_top = NULL;
 
 /* Add a new movable entity to our game, inform chipmunk and allocate bitmap */
-ENT_NODE *add_entity_mobile(cpVect position, double radius, double mass, char *bitmap_file, unsigned char layer){
+ENT_NODE *add_entity_mobile(cpVect position, double radius, double mass, unsigned int bitmap, unsigned char layer){
   ENT_NODE *new_node = calloc(1, sizeof(ENT_NODE));
+  BITMAP_PLAIN *temp = plaint_bitmap_list;
   double moment = cpMomentForCircle(mass, 0.0, radius, cpvzero);
+  unsigned int i = 0;
 
   DL_APPEND(ent_top, new_node);
 
@@ -28,19 +31,19 @@ ENT_NODE *add_entity_mobile(cpVect position, double radius, double mass, char *b
   new_node->body_width = 2.0 * radius;
   new_node->layer = layer;
 
-  if(bitmap_file){
-    new_node->bitmap = al_load_bitmap(bitmap_file);
-    new_node->bitmap_height = al_get_bitmap_height(new_node->bitmap);
-    new_node->bitmap_width = al_get_bitmap_width(new_node->bitmap);
+  if(bitmap != 0){
+    for(i = 1; i < bitmap; temp = temp->next, ++i);
+    new_node->bitmap = temp->bitmap;
   }
 
   return new_node;
 }
 
 /* Add a static (non-movable) entity to our game */
-ENT_NODE *add_entity_static(cpVect position, double width, double height, char *bitmap_file, unsigned char layer){
+ENT_NODE *add_entity_static(cpVect position, double width, double height, unsigned int bitmap, unsigned char layer){
   ENT_NODE *new_node = calloc(1, sizeof(ENT_NODE));
-
+  BITMAP_PLAIN *temp = plaint_bitmap_list;
+  unsigned int i = 0;
   DL_APPEND(ent_top, new_node);
 
   new_node->body = cpBodyNewStatic();
@@ -54,15 +57,11 @@ ENT_NODE *add_entity_static(cpVect position, double width, double height, char *
   new_node->body_height = height;
   new_node->body_width = width;
   new_node->layer = layer;
+  new_node->position = position;
 
-  if(bitmap_file){
-    new_node->bitmap = al_load_bitmap(bitmap_file);
-    if(new_node->bitmap){
-      new_node->bitmap_height = al_get_bitmap_height(new_node->bitmap);
-      new_node->bitmap_width = al_get_bitmap_width(new_node->bitmap);
-    }else{
-      (void)puts("Bitmap file can't be found!");
-    }
+  if(bitmap != 0){
+    for(i = 1; i < bitmap; temp = temp->next, ++i);
+    new_node->bitmap = temp->bitmap;
   }
 
   return new_node;
@@ -120,12 +119,15 @@ ENT_NODE *add_entity_text_direct(cpVect position, char *string, unsigned char la
 }
 
 /* Add a node without any phtsical parameters */
-ENT_NODE *add_entity_nophys(cpVect position, double width, double height, char *bitmap, unsigned char layer){
+ENT_NODE *add_entity_nophys(cpVect position, double width, double height, unsigned int bitmap, unsigned char layer){
   ENT_NODE *new_node = NULL;
+  BITMAP_PLAIN *temp = plaint_bitmap_list;
+  unsigned int i = 0;
 
-  if(bitmap){
+  if(bitmap != 0){
     new_node = calloc(1, sizeof(ENT_NODE));
-    new_node->bitmap = al_load_bitmap(bitmap);
+    for(i = 1; i < bitmap; temp = temp->next, ++i);
+    new_node->bitmap = temp->bitmap;
     new_node->body_width = width;
     new_node->body_height = height;
     new_node->bitmap_height = al_get_bitmap_height(new_node->bitmap);
@@ -166,18 +168,15 @@ void del_entity(ENT_NODE *target){
     }
     cpShapeFree(target->shape);
     cpBodyFree(target->body);
-    al_destroy_bitmap(target->bitmap);
   }
 }
 
 /* Free all resources and shut down the engines */
 void stop_interfacer(void){
   ENT_NODE *temp1 = NULL;
+  BITMAP_PLAIN *temp_bitmap = NULL;
   DL_FOREACH(ent_top, temp1){
     DL_DELETE(ent_top, temp1);
-    if(temp1->bitmap){
-      al_destroy_bitmap(temp1->bitmap);
-    }
 
     if(temp1->string == NULL && temp1->shape != NULL){
       cpSpaceRemoveShape(phys_space, temp1->shape);
@@ -192,5 +191,9 @@ void stop_interfacer(void){
       (void)free(temp1->string);
     }
     (void)free(temp1);
+  }
+
+  DL_FOREACH(plaint_bitmap_list, temp_bitmap){
+    DL_DELETE(plaint_bitmap_list, temp_bitmap);
   }
 }

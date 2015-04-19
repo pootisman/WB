@@ -13,9 +13,7 @@
 int show_greeting(void){
   ALLEGRO_BITMAP *background = al_load_bitmap("Background_space.jpeg");
   if(renderer.main_font){
-    /*add_entity_static(cpv(0.0f, 0.0f), renderer.view_width, renderer.view_height, "Bakcground.jpeg");
-    temp = add_entity_text(cpv(0.5f * renderer.view_width, 0.9f * renderer.view_height), "Welcome, hit return to start.");
-    Wait for player to press enter or terminate the program on welcoming */
+    /* Wait for player to press enter or terminate the program on welcoming */
     while(1){
       al_clear_to_color(al_map_rgb(0, 0, 0));
       al_draw_scaled_bitmap(background, 0, 0, 1600, 1200, 0, 0, renderer.view_width, renderer.view_height, 0);

@@ -4,14 +4,6 @@
 #include <allegro5/allegro.h>
 #include <chipmunk/chipmunk.h>
 
-#define PHYS_DYNAMIC_BMAP 1
-#define PHYS_STATIC_BMAP 2
-#define NOPHYS_BMAP 3
-#define NOPHYS_TEXT 4
-#define NOPHYS_PROGBAR 5
-#define NOPHYS_TRIGGER 6
-#define NOPHYS_TRIGGER_BMAP 7
-
 /* Generic entity node */
 typedef struct ENT_NODE{
   /* Shape, body and bitmap are NULL if we want to render a string */
@@ -32,11 +24,10 @@ typedef struct ENT_NODE{
   struct ENT_NODE *next, *prev;
 }ENT_NODE;
 
-typedef struct GENERIC_ENT_NODE{
-  unsigned char node_type;
-  void *node_pointer;
-  struct GENERIC_ENT_NODE *next, *prev;
-}GENERIC_ENT_NODE;
+typedef struct BITMAP_PLAIN{
+  ALLEGRO_BITMAP *bitmap;
+  struct BITMAP_PLAIN *prev, *next;
+}BITMAP_PLAIN;
 
 typedef struct ENT_PHYS_DYNAMIC_BMAP{
   cpShape *shape;
@@ -79,7 +70,12 @@ typedef struct ENT_NOPHYS_TRIGGER{
 typedef struct ENT_NOPHYS_TRIGGER_BMAP{
   cpShape *shape;
   cpBody *body;
+  double position_x, position_y;
+  ALLEGRO_BITMAP *bitmap;
 }ENT_NOPHYS_TRIGGER_BMAP;
+
+extern BITMAP_PLAIN *plaint_bitmap_list;
+extern unsigned int bitmap_counter;
 
 extern ENT_DYNAMIC_BMAP *ent_bmap_top;
 extern ENT_DYNAMIC_BMAP *ent_bmap_top;
@@ -88,11 +84,11 @@ extern ENT_DYNAMIC_BMAP *ent_bmap_top;
 
 extern ENT_NODE *ent_top;
 
-ENT_NODE *add_entity_mobile(cpVect position, double radius, double mass, char *bitmap, unsigned char layer);
-ENT_NODE *add_entity_static(cpVect position, double width, double height, char *bitmap, unsigned char layer);
+ENT_NODE *add_entity_mobile(cpVect position, double radius, double mass, unsigned int bitmap, unsigned char layer);
+ENT_NODE *add_entity_static(cpVect position, double width, double height, unsigned int bitmap, unsigned char layer);
 ENT_NODE *add_entity_text(cpVect position, char *string, unsigned char layer);
 ENT_NODE *add_entity_text_direct(cpVect position, char *string, unsigned char layer);
-ENT_NODE *add_entity_nophys(cpVect position, double width, double height, char *bitmap, unsigned char layer);
+ENT_NODE *add_entity_nophys(cpVect position, double width, double height, unsigned int bitmap, unsigned char layer);
 ENT_NODE *add_entity_bar(cpVect position, double length, double height, double *monitored_value, unsigned char layer);
 int bind_trigger(ENT_NODE *node, cpBool collision);
 void render_node(ENT_NODE *node);

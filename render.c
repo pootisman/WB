@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "render.h"
+#include "utlist.h"
 
 RENDER renderer;
 
@@ -143,7 +144,7 @@ inline cpBool have_to_render(ENT_NODE *tested){
 /* TODO: Fix colour assignment for text
  * Render object to specific layer/bitmap
  */
-void render_node(ENT_NODE *object){
+inline void render_node(ENT_NODE *object){
   if(object == NULL){
     (void)puts("Can't render NULL!");
     return;
@@ -159,7 +160,7 @@ void render_node(ENT_NODE *object){
     al_use_transform(&(renderer.layer_transforms[object->layer]));
 
     if(object->bitmap != NULL && object->body != NULL){
-      al_draw_scaled_rotated_bitmap(object->bitmap, object->bitmap_width/2, object->bitmap_height/2, cpBodyGetPosition(object->body).x, cpBodyGetPosition(object->body).y, object->body_width/object->bitmap_width, object->body_height/object->bitmap_height, (((int)cpBodyGetAngle(object->body) % 360) / 360.0) * 255, 0 );
+      al_draw_scaled_rotated_bitmap(object->bitmap, al_get_bitmap_width(object->bitmap)/2, al_get_bitmap_height(object->bitmap)/2, cpBodyGetPosition(object->body).x, cpBodyGetPosition(object->body).y, object->body_width/al_get_bitmap_width(object->bitmap), object->body_height/al_get_bitmap_height(object->bitmap), (((int)cpBodyGetAngle(object->body) % 360) / 360.0) * 255, 0 );
     }else if(object->bitmap != NULL){
       al_draw_scaled_bitmap(object->bitmap, 0, 0, object->bitmap_width, object->bitmap_height, object->position.x, object->position.y, renderer.view_width, renderer.view_height, 0);
     }else if(object->string != NULL){
@@ -168,6 +169,36 @@ void render_node(ENT_NODE *object){
       al_draw_filled_rectangle(object->position.x, object->position.y, object->bitmap_width * *(object->monitored_value_pointer), object->bitmap_height, al_map_rgb(255 * *(object->monitored_value_pointer), 255 * *(object->monitored_value_pointer), 255 * *(object->monitored_value_pointer)));
     }
   }
+}
+
+void render_layers(void){
+  
+}
+
+/* Preload a bitmap ad then return the ID of it */
+int precache_bitmap(char *filename){
+  BITMAP_PLAIN *new_bitmap = NULL;
+
+  if(filename == NULL){
+    return -1;
+  }
+
+  new_bitmap = calloc(1, sizeof(BITMAP_PLAIN));
+
+  if(new_bitmap == NULL){
+    return -2;
+  }
+
+  new_bitmap->bitmap = al_load_bitmap_flags(filename, ALLEGRO_VIDEO_BITMAP);
+
+  if(new_bitmap->bitmap == NULL){
+    return -2;
+  }
+
+  DL_APPEND(plaint_bitmap_list, new_bitmap);
+  bitmap_counter++;
+
+  return (bitmap_counter - 1);
 }
 
 /* Draw all prepared bitmaps to the main display */

@@ -11,6 +11,12 @@
 
 #define RENDER_NUM_LAYERS 8
 
+typedef struct BMAP_STORAGE{
+  ALLEGRO_BITMAP *bitmap;
+  unsigned int reference_counter;
+  struct BMAP_STORAGE *next, *prev;
+}BMAP_STORAGE;
+
 typedef struct RENDER{
   ALLEGRO_DISPLAY *display;
   ALLEGRO_FONT *main_font;
@@ -32,6 +38,8 @@ void add_trans_to_layer(ALLEGRO_TRANSFORM *transform, unsigned char target_layer
 void apply_trans_to_layer(ALLEGRO_TRANSFORM *transform, unsigned char target_layer);
 void render_to_layer(ENT_NODE *object, unsigned char target_layer);
 void render_finalize_and_draw(void);
+
+int precache_bitmap(char *filename);
 
 void stop_render(void);
 
