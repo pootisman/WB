@@ -31,7 +31,7 @@ inline void add_platform(cpVect position){
 }
 
 inline void add_hole(cpVect position){
-  ENT_NODE *temp = add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, 0,  RENDER_NUM_LAYERS - 2);
+  ENT_PHYS_STATIC *temp = add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, 0,  RENDER_NUM_LAYERS - 2);
   bind_trigger(temp, cpFalse);
 }
 
@@ -48,7 +48,7 @@ void init_critical(){
 
 /* Player is initialized here */
 void init_level(){
-  ENT_NODE *temp;
+  ENT_PHYS_DYNAMIC *temp;
   /* Add ground */
   gen_chunk();
   /* Add background
@@ -61,7 +61,7 @@ void init_level(){
 
   add_entity_nophys(cpv(-renderer.view_width/2.0, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
   /* Add timer and a bar */
-  add_entity_bar(cpv(100, 100), renderer.view_width * 0.7, 30, &timeleft, RENDER_NUM_LAYERS - 1);
+  add_entity_bar(cpv(250, 15), renderer.view_width * 0.5, 10, &timeleft, RENDER_NUM_LAYERS - 1);
 
   /* Kludge master */
   spawn(NULL);
@@ -96,12 +96,6 @@ void gen_chunk(){
     }
 
   }
-
-  /*
-  for(i = 3; i < 6; i++){
-    add_platform(cpv(32 + 64*i, renderer.view_height/2));
-  }
-  */
 }
 
 /* Keep generating new transformation in order to keep our player on screen */
@@ -115,10 +109,10 @@ void track_player(){
     /* Now we have to recompute slide speed and coordinates */
     if(player_position.x <= TRACKING_THRESHOLD * renderer.view_width + display_x_offset){
       display_x_offset -= pow(TRACKING_BASE, fabs((player_position.x - renderer.view_width/2.0 - display_x_offset)/((1.0 - TRACKING_THRESHOLD) * renderer.view_width)) * TRACKING_MULTIPLIER);
-      (void)printf("Increasing horisontal offset to %f\n", display_x_offset);
+      (void)printf("Decreasing horisontal offset to %f\n", display_x_offset);
     }else{
       display_x_offset += pow(TRACKING_BASE, fabs((player_position.x - renderer.view_width/2.0 - display_x_offset)/((1.0 - TRACKING_THRESHOLD) * renderer.view_width)) * TRACKING_MULTIPLIER);
-      (void)printf("Decreasing horisontal offset to %f\n", display_x_offset);
+      (void)printf("Increasing horisontal offset to %f\n", display_x_offset);
     }
   }
 
@@ -133,8 +127,6 @@ void track_player(){
 
 /* Loop functioon for our game */
 int run_loop(){
-  ENT_NODE *temp = NULL;
-
   gettimeofday(&time_now, NULL);
   time_stop.tv_sec = time_now.tv_sec + TIMEOUT;
 
@@ -200,10 +192,7 @@ int run_loop(){
     track_player();
     (void)sprintf(&(health_string[0]), "Health: %d", single_player.health);
 
-    DL_FOREACH(ent_top, temp){
-      render_node(temp);
-    }
-
+    render_layers();
     render_finalize_and_draw();
 
     cpSpaceStep(phys_space, DEF_TIME_STEP);

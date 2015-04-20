@@ -144,35 +144,62 @@ inline cpBool have_to_render(ENT_NODE *tested){
 /* TODO: Fix colour assignment for text
  * Render object to specific layer/bitmap
  */
-inline void render_node(ENT_NODE *object){
-  if(object == NULL){
-    (void)puts("Can't render NULL!");
-    return;
-  }
+inline void render_layers(void){
+  ENT_PHYS_DYNAMIC *temp_phys_dynamic = NULL;
+  ENT_PHYS_STATIC *temp_phys_static = NULL;
+  ENT_NOPHYS_STATIC *temp_nophys_static = NULL;
+  ENT_NOPHYS_DYNAMIC *temp_nophys_dynamic = NULL;
+  ENT_NOPHYS_TEXT *temp_text = NULL;
+  ENT_NOPHYS_PROGBAR *temp_prog = NULL;
 
-  if(object->bitmap == NULL && object->string == NULL){
-    return;
-  }
-
-  /* Do we have to render the object at all?*/
-  if(1){
-    al_set_target_bitmap(renderer.layers[object->layer]);
-    al_use_transform(&(renderer.layer_transforms[object->layer]));
-
-    if(object->bitmap != NULL && object->body != NULL){
-      al_draw_scaled_rotated_bitmap(object->bitmap, al_get_bitmap_width(object->bitmap)/2, al_get_bitmap_height(object->bitmap)/2, cpBodyGetPosition(object->body).x, cpBodyGetPosition(object->body).y, object->body_width/al_get_bitmap_width(object->bitmap), object->body_height/al_get_bitmap_height(object->bitmap), (((int)cpBodyGetAngle(object->body) % 360) / 360.0) * 255, 0 );
-    }else if(object->bitmap != NULL){
-      al_draw_scaled_bitmap(object->bitmap, 0, 0, object->bitmap_width, object->bitmap_height, object->position.x, object->position.y, renderer.view_width, renderer.view_height, 0);
-    }else if(object->string != NULL){
-      al_draw_text(renderer.main_font, al_map_rgb(241, 142, 0), object->body_width, object->body_height, ALLEGRO_ALIGN_LEFT, object->string);
-    }else if(object->monitored_value_pointer != NULL){
-      al_draw_filled_rectangle(object->position.x, object->position.y, object->bitmap_width * *(object->monitored_value_pointer), object->bitmap_height, al_map_rgb(255 * *(object->monitored_value_pointer), 255 * *(object->monitored_value_pointer), 255 * *(object->monitored_value_pointer)));
+  DL_FOREACH(dynamic_phys_body_list, temp_phys_dynamic){
+    if(temp_phys_dynamic->bitmap){
+      al_set_target_bitmap(renderer.layers[temp_phys_dynamic->layer]);
+      al_use_transform(&(renderer.layer_transforms[temp_phys_dynamic->layer]));
+      al_draw_scaled_rotated_bitmap(temp_phys_dynamic->bitmap, al_get_bitmap_width(temp_phys_dynamic->bitmap)/2, al_get_bitmap_height(temp_phys_dynamic->bitmap)/2, cpBodyGetPosition(temp_phys_dynamic->body).x, cpBodyGetPosition(temp_phys_dynamic->body).y, temp_phys_dynamic->body_width/al_get_bitmap_width(temp_phys_dynamic->bitmap), temp_phys_dynamic->body_height/al_get_bitmap_height(temp_phys_dynamic->bitmap), (((int)cpBodyGetAngle(temp_phys_dynamic->body) % 360) / 360.0) * 255, 0 );
     }
   }
-}
 
-void render_layers(void){
-  
+  DL_FOREACH(static_phys_body_list, temp_phys_static){
+    if(temp_phys_static->bitmap){
+      al_set_target_bitmap(renderer.layers[temp_phys_static->layer]);
+      al_use_transform(&(renderer.layer_transforms[temp_phys_static->layer]));
+      al_draw_scaled_rotated_bitmap(temp_phys_static->bitmap, al_get_bitmap_width(temp_phys_static->bitmap)/2, al_get_bitmap_height(temp_phys_static->bitmap)/2, cpBodyGetPosition(temp_phys_static->body).x, cpBodyGetPosition(temp_phys_static->body).y, temp_phys_static->body_width/al_get_bitmap_width(temp_phys_static->bitmap), temp_phys_static->body_height/al_get_bitmap_height(temp_phys_static->bitmap), (((int)cpBodyGetAngle(temp_phys_static->body) % 360) / 360.0) * 255, 0 );
+    }
+  }
+
+  DL_FOREACH(static_nophys_body_list, temp_nophys_static){
+    if(temp_nophys_static->bitmap){
+      al_set_target_bitmap(renderer.layers[temp_nophys_static->layer]);
+      al_use_transform(&(renderer.layer_transforms[temp_nophys_static->layer]));
+      al_draw_scaled_bitmap(temp_nophys_static->bitmap, 0, 0, al_get_bitmap_width(temp_nophys_static->bitmap), al_get_bitmap_height(temp_nophys_static->bitmap), temp_nophys_static->position_x, temp_nophys_static->position_y, renderer.view_width, renderer.view_height, 0 );
+    }
+  }
+
+  DL_FOREACH(dynamic_nophys_body_list, temp_nophys_dynamic){
+    if(temp_nophys_static->bitmap){
+      al_set_target_bitmap(renderer.layers[temp_nophys_dynamic->layer]);
+      al_use_transform(&(renderer.layer_transforms[temp_nophys_dynamic->layer]));
+      al_draw_scaled_bitmap(temp_nophys_dynamic->bitmap, 0, 0, al_get_bitmap_width(temp_nophys_dynamic->bitmap), al_get_bitmap_height(temp_nophys_dynamic->bitmap), temp_nophys_dynamic->position_x, temp_nophys_dynamic->position_y, renderer.view_width, renderer.view_height, 0 );
+    }
+  }
+
+  DL_FOREACH(nophys_text_list, temp_text){
+    if(temp_text->string){
+      al_set_target_bitmap(renderer.layers[temp_text->layer]);
+      al_use_transform(&(renderer.layer_transforms[temp_text->layer]));
+      al_draw_text(renderer.main_font, al_map_rgb(241, 142, 0), temp_text->position_x, temp_text->position_y, 0, temp_text->string);
+    }
+  }
+
+  DL_FOREACH(nophys_progress_list, temp_prog){
+    if(temp_prog->monitored_value){
+      al_set_target_bitmap(renderer.layers[temp_prog->layer]);
+      al_use_transform(&(renderer.layer_transforms[temp_prog->layer]));
+      al_draw_rectangle(temp_prog->position_x - 1, temp_prog->position_y - 2, temp_prog->position_x + temp_prog->length + 2, temp_prog->position_y + temp_prog->height + 1, al_map_rgb(241, 142, 0),1);
+      al_draw_filled_rectangle(temp_prog->position_x, temp_prog->position_y, temp_prog->position_x + *(temp_prog->monitored_value) * temp_prog->length, temp_prog->position_y + temp_prog->height, al_map_rgb(241, 142, 0));
+    }
+  }
 }
 
 /* Preload a bitmap ad then return the ID of it */

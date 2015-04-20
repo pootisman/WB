@@ -24,75 +24,114 @@ typedef struct ENT_NODE{
   struct ENT_NODE *next, *prev;
 }ENT_NODE;
 
+/* This is our new storage for bitmaps, old one was too bulky
+ * now it is pretty slim */
 typedef struct BITMAP_PLAIN{
   ALLEGRO_BITMAP *bitmap;
   struct BITMAP_PLAIN *prev, *next;
 }BITMAP_PLAIN;
 
-typedef struct ENT_PHYS_DYNAMIC_BMAP{
+/* Moving physical body */
+typedef struct ENT_PHYS_DYNAMIC{
   cpShape *shape;
   cpBody *body;
+  double body_width, body_height;
   ALLEGRO_BITMAP *bitmap;
-}ENT_DYNAMIC_BMAP;
+  unsigned char layer;
+  struct ENT_PHYS_DYNAMIC *prev, *next;
+}ENT_PHYS_DYNAMIC;
 
-typedef struct ENT_PHYS_STATIC_BMAP{
+/* Stationary body */
+typedef struct ENT_PHYS_STATIC{
+  cpBody *body;
   cpShape *shape;
+  double body_width, body_height;
   ALLEGRO_BITMAP *bitmap;
-}ENT_STATIC_BMAP;
+  unsigned char layer;
+  struct ENT_PHYS_STATIC *prev, *next;
+}ENT_PHYS_STATIC;
 
-typedef struct ENT_NOPHYS_BMAP{
+/* No collisions for this moving body */
+typedef struct ENT_NOPHYS_DYNAMIC{
   double position_x, position_y;
   double size_x, size_y;
   ALLEGRO_BITMAP *bitmap;
-}ENT_NOPHYS_DYNAMIC_BMAP;
+  unsigned char layer;
+  struct ENT_NOPHYS_DYNAMIC *prev, *next;
+}ENT_NOPHYS_DYNAMIC;
 
+/* No collision for this static body */
+typedef struct ENT_NOPHYS_STATIC{
+  double position_x, position_y;
+  double size_x, size_y;
+  ALLEGRO_BITMAP *bitmap;
+  unsigned char layer;
+  struct ENT_NOPHYS_STATIC *prev, *next;
+}ENT_NOPHYS_STATIC;
+
+/* Text */
 typedef struct ENT_NOPHYS_TEXT{
   double position_x, position_y;
   ALLEGRO_COLOR text_color;
-  unsigned char is_a_copy;
-  char *text;
+  unsigned char is_a_copy, layer;
+  char *string;
+  struct ENT_NOPHYS_TEXT *prev, *next;
 }ENT_NOPHYS_TEXT;
 
+/* Progress bar */
 typedef struct ENT_NOPHYS_PROGBAR{
   double position_x, position_y;
   double length, height;
+  double *monitored_value;
   ALLEGRO_COLOR progressbar_color;
   ALLEGRO_COLOR progresstxt_color;
-  unsigned char render_mode;
+  unsigned char render_mode, layer;
+  struct ENT_NOPHYS_PROGBAR *prev, *next;
 }ENT_NOPHYS_PROGBAR;
 
-typedef struct ENT_NOPHYS_TRIGGER{
-  cpShape *shape;
-  cpBody *body;
-  double position_x, position_y;
-}ENT_NOPHYS_TRIGGER;
-
-typedef struct ENT_NOPHYS_TRIGGER_BMAP{
+/* Trigger with physical collisions (frying pan) */
+typedef struct ENT_PHYS_TRIGGER{
   cpShape *shape;
   cpBody *body;
   double position_x, position_y;
   ALLEGRO_BITMAP *bitmap;
-}ENT_NOPHYS_TRIGGER_BMAP;
+  unsigned char layer;
+  struct ENT_PHYS_TRIGGER *prev, *next;
+}ENT_PHYS_TRIGGER;
 
 extern BITMAP_PLAIN *plaint_bitmap_list;
 extern unsigned int bitmap_counter;
 
-extern ENT_DYNAMIC_BMAP *ent_bmap_top;
-extern ENT_DYNAMIC_BMAP *ent_bmap_top;
-extern ENT_DYNAMIC_BMAP *ent_bmap_top;
-extern ENT_DYNAMIC_BMAP *ent_bmap_top;
+extern ENT_PHYS_DYNAMIC *dynamic_phys_body_list;
+extern unsigned int dynamic_phys_body_count;
+
+extern ENT_PHYS_STATIC *static_phys_body_list;
+extern unsigned int static_phys_body_count;
+
+extern ENT_NOPHYS_DYNAMIC *dynamic_nophys_body_list;
+extern unsigned int dynamic_nophys_body_count;
+
+extern ENT_NOPHYS_STATIC *static_nophys_body_list;
+extern unsigned int static_nophys_body_count;
+
+extern ENT_NOPHYS_TEXT *nophys_text_list;
+extern unsigned int nophys_text_count;
+
+extern ENT_NOPHYS_PROGBAR *nophys_progress_list;
+extern unsigned int nophys_progress_count;
+
+extern ENT_PHYS_TRIGGER *phys_trigger_list;
+extern unsigned int phys_trigger_count;
 
 extern ENT_NODE *ent_top;
 
-ENT_NODE *add_entity_mobile(cpVect position, double radius, double mass, unsigned int bitmap, unsigned char layer);
-ENT_NODE *add_entity_static(cpVect position, double width, double height, unsigned int bitmap, unsigned char layer);
-ENT_NODE *add_entity_text(cpVect position, char *string, unsigned char layer);
-ENT_NODE *add_entity_text_direct(cpVect position, char *string, unsigned char layer);
-ENT_NODE *add_entity_nophys(cpVect position, double width, double height, unsigned int bitmap, unsigned char layer);
-ENT_NODE *add_entity_bar(cpVect position, double length, double height, double *monitored_value, unsigned char layer);
-int bind_trigger(ENT_NODE *node, cpBool collision);
-void render_node(ENT_NODE *node);
-void del_entity(ENT_NODE *target);
+ENT_PHYS_DYNAMIC *add_entity_mobile(cpVect position, double radius, double mass, unsigned int bitmap, unsigned char layer);
+ENT_PHYS_STATIC *add_entity_static(cpVect position, double width, double height, unsigned int bitmap, unsigned char layer);
+ENT_NOPHYS_TEXT *add_entity_text(cpVect position, char *string, unsigned char layer);
+ENT_NOPHYS_TEXT *add_entity_text_direct(cpVect position, char *string, unsigned char layer);
+ENT_NOPHYS_STATIC *add_entity_nophys(cpVect position, double width, double height, unsigned int bitmap, unsigned char layer);
+ENT_NOPHYS_PROGBAR *add_entity_bar(cpVect position, double length, double height, double *monitored_value, unsigned char layer);
+int bind_trigger(ENT_PHYS_STATIC *node, cpBool collision);
 void stop_interfacer(void);
 
 #endif
