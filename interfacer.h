@@ -132,6 +132,7 @@ ENT_NOPHYS_TEXT *add_entity_text_direct(cpVect position, char *string, unsigned 
 ENT_NOPHYS_STATIC *add_entity_nophys(cpVect position, double width, double height, unsigned int bitmap, unsigned char layer);
 ENT_NOPHYS_PROGBAR *add_entity_bar(cpVect position, double length, double height, double *monitored_value, unsigned char layer);
 int bind_trigger(ENT_PHYS_STATIC *node, cpBool collision);
+int bind_level_seam(ENT_PHYS_STATIC *node);
 void stop_interfacer(void);
 
 #endif

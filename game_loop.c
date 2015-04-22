@@ -25,6 +25,7 @@ char playing_string[128] = {0};
 char health_string[32] = {0};
 
 float display_x_offset = 0.0f;
+cpBool did_reach_teleport = cpFalse;
 
 inline void add_platform(cpVect position){
   add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, 2, RENDER_NUM_LAYERS - 2);
@@ -35,20 +36,27 @@ inline void add_hole(cpVect position){
   bind_trigger(temp, cpFalse);
 }
 
+inline void add_level_teleport(cpVect position){
+  ENT_PHYS_STATIC *temp = add_entity_static(position, 1, renderer.view_height, 0,  RENDER_NUM_LAYERS - 2);
+  bind_trigger(temp, cpFalse);
+}
+
 /* Load critical resources, such as background image,
  * platform textures and player ball.
  */
 void init_critical(){
-  precache_bitmap("Background_space.jpeg");
-  precache_bitmap("Platform.png");
-  precache_bitmap("Ball.png");
+  display_x_offset = 0.0;
+  precache_bitmap("Background_space.tga");
+  precache_bitmap("Platform.tga");
+  precache_bitmap("Ball.tga");
 }
 
 /* TODO: Fix double spawn of the player somehow */
 
 /* Player is initialized here */
 void init_level(){
-  ENT_PHYS_DYNAMIC *temp;
+  ENT_PHYS_DYNAMIC *temp_dyn;
+  ENT_PHYS_STATIC *temp_static;
   /* Add ground */
   gen_chunk();
   /* Add background
@@ -65,10 +73,12 @@ void init_level(){
 
   /* Kludge master */
   spawn(NULL);
-  temp = add_entity_mobile(cpv(40.0, 100.0), single_player.radius, single_player.mass, 3, RENDER_NUM_LAYERS -2);
-  spawn(temp->body);
+  temp_dyn = add_entity_mobile(cpv(40.0, 100.0), single_player.radius, single_player.mass, 3, RENDER_NUM_LAYERS -2);
+  spawn(temp_dyn->body);
 
-
+  /* Create a teleport to next level */
+  temp_static = add_entity_static(cpv(renderer.view_width * 5, 0), 1, renderer.view_height, 0, RENDER_NUM_LAYERS - 2);
+  bind_level_seam(temp_static);
 
   sprintf(&(playing_string[0]), "Player %s is in the game.", single_player.player_name);
   add_entity_text_direct( cpv(10, 10), &(playing_string[0]), RENDER_NUM_LAYERS - 1);
@@ -125,8 +135,15 @@ void track_player(){
   apply_trans_to_layer(&trans, 0);
 }
 
-/* Loop functioon for our game */
+/* Loop functioon for our game, UGLY GOTO DETECTED! */
 int run_loop(){
+  unsigned int level_counter = 0;
+  gamereset:
+  level_counter++;
+  did_reach_teleport = cpFalse;
+  init_critical();
+  init_level();
+
   gettimeofday(&time_now, NULL);
   time_stop.tv_sec = time_now.tv_sec + TIMEOUT;
 
@@ -196,6 +213,11 @@ int run_loop(){
     render_finalize_and_draw();
 
     cpSpaceStep(phys_space, DEF_TIME_STEP);
+
+    if(did_reach_teleport == cpTrue){
+      stop_interfacer();
+      goto gamereset;
+    }
   }
 
   return EXIT_SUCCESS;

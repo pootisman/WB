@@ -110,6 +110,19 @@ int bind_trigger(ENT_PHYS_STATIC *node, cpBool collision){
   return 0;
 }
 
+int bind_level_seam(ENT_PHYS_STATIC *node){
+  if(node == NULL){
+    (void)puts("Level end needs a node");
+    return -2;
+  }
+
+  cpShapeSetCollisionType(node->shape, ENDLEVEL_COLLISION);
+
+  cpShapeSetSensor(node->shape, cpFalse);
+
+  return 0;
+}
+
 /* Add a string object to our list of rendered stuff (Copy data from pointer) */
 ENT_NOPHYS_TEXT *add_entity_text(cpVect position, char *string, unsigned char layer){
   ENT_NOPHYS_TEXT *new_node = NULL;
@@ -202,7 +215,7 @@ void del_entity(ENT_NODE *target){
 
 }
 
-/* Free all resources and shut down the engines */
+/* Free all resources */
 void stop_interfacer(void){
   ENT_PHYS_DYNAMIC *temp_phys_dynamic = NULL;
   ENT_PHYS_STATIC *temp_phys_static = NULL;
@@ -218,35 +231,42 @@ void stop_interfacer(void){
     cpSpaceRemoveShape(phys_space, temp_phys_dynamic->shape);
     free(temp_phys_dynamic);
   }
+  dynamic_phys_body_list = NULL;
+
 
   DL_FOREACH(static_phys_body_list, temp_phys_static){
     DL_DELETE(static_phys_body_list, temp_phys_static);
     cpSpaceRemoveShape(phys_space, temp_phys_static->shape);
     free(temp_phys_static);
   }
+  static_phys_body_list = NULL;
 
   DL_FOREACH(dynamic_nophys_body_list, temp_nophys_dynamic){
     DL_DELETE(dynamic_nophys_body_list, temp_nophys_dynamic);
     free(temp_nophys_dynamic);
   }
+  dynamic_nophys_body_list = NULL;
 
   DL_FOREACH(static_nophys_body_list, temp_nophys_static){
     DL_DELETE(static_nophys_body_list, temp_nophys_static);
     free(temp_nophys_static);
   }
+  static_nophys_body_list = NULL;
 
   DL_FOREACH(nophys_text_list, temp_nophys_text){
     DL_DELETE(nophys_text_list, temp_nophys_text);
     free(temp_nophys_text);
   }
+  nophys_text_list = NULL;
 
   DL_FOREACH(nophys_progress_list, temp_nophys_progbar){
     DL_DELETE(nophys_progress_list, temp_nophys_progbar);
     free(temp_nophys_progbar);
   }
+  nophys_progress_list = NULL;
 
   DL_FOREACH(plaint_bitmap_list, temp_bitmap){
     DL_DELETE(plaint_bitmap_list, temp_bitmap);
   }
-
+  plaint_bitmap_list = NULL;
 }

@@ -7,6 +7,7 @@ RENDER renderer;
 /* Initialize base, image, text, fonts */
 int init_render(unsigned short view_width, unsigned short view_height){
   unsigned char i = 0;
+  int oldflags = 0;
 
   /* Initialize Allegro engine */
   (void)puts("Initializing Allegro engine");
@@ -83,9 +84,6 @@ int init_render(unsigned short view_width, unsigned short view_height){
   al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
   al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
 
-  /* Linear interpolation and mipmapping */
-  al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MIPMAP);
-
   (void)fputs("[al_create_display>--", stdout);
   renderer.display = al_create_display(renderer.view_width, renderer.view_height);
   if(!renderer.display) {
@@ -111,6 +109,7 @@ int init_render(unsigned short view_width, unsigned short view_height){
 
   al_register_event_source(renderer.main_queue, renderer.display_source);
 
+  al_set_new_bitmap_flags(ALLEGRO_VIDEO_BITMAP | ALLEGRO_MIN_LINEAR | ALLEGRO_MIPMAP);
   /* Prepare layers */
   for(; i < RENDER_NUM_LAYERS; i++){
     renderer.layers[i] = al_create_bitmap(renderer.view_width, renderer.view_height);
@@ -132,14 +131,6 @@ void apply_trans_to_layer(ALLEGRO_TRANSFORM *transform, unsigned char target_lay
     al_copy_transform(&(renderer.layer_transforms[target_layer]), transform);
   }
 }
-
-/*
-inline cpBool have_to_render(ENT_NODE *tested){
-  if(tested->position.x < renderer.view_width+ ){
-
-  }
-}
-*/
 
 /* TODO: Fix colour assignment for text
  * Render object to specific layer/bitmap
@@ -219,6 +210,7 @@ int precache_bitmap(char *filename){
   new_bitmap->bitmap = al_load_bitmap_flags(filename, ALLEGRO_VIDEO_BITMAP);
 
   if(new_bitmap->bitmap == NULL){
+    (void)printf("Failed to load bitmap %s.", filename);
     return -2;
   }
 
@@ -241,6 +233,7 @@ void render_finalize_and_draw(){
 
   al_flip_display();
   
+  /* Clear all levels */
   for(i = 0; i < RENDER_NUM_LAYERS; i++){
     al_set_target_bitmap(renderer.layers[i]);
     al_clear_to_color(al_map_rgba(0,0,0,0));

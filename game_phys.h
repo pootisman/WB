@@ -12,6 +12,7 @@
 #define PLATFORM_COLLISION 0x000F
 #define TRIGGER_COLLISION  0x00F0
 #define POWERUP_COLLISION  0x0F00
+#define ENDLEVEL_COLLISION  0xF000
 
 extern cpSpace *phys_space;
 extern cpVect gravity;
