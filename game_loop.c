@@ -101,11 +101,13 @@ void gen_chunk(){
       add_platform(cpv(32+64*i, renderer.view_height - 16), 0.0);
     }else{
       add_hole(cpv(32+ 64*i, renderer.view_height - 16));
+      add_deathwall(cpv(32+ 64*i, renderer.view_height + 16));
     }
     if((double)rand()/(double)RAND_MAX > 0.3){
       add_platform(cpv(32+64*i, 16), 0.0);
     }else{
       add_hole(cpv(32+ 64*i, 16));
+      add_deathwall(cpv(32 + 64*i, -16));
     }
 
     if(rand() % 5 == 0){

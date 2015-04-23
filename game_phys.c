@@ -45,7 +45,8 @@ int init_phys(){
   (void)puts("--<DONE]");
 
   gap_of_death->preSolveFunc = get_hurt;
-  levels_end->postSolveFunc = reach_teleport;
+  levels_end->preSolveFunc = reach_teleport;
+  deathwall->preSolveFunc = die_now;
 
   return 0;
 }
