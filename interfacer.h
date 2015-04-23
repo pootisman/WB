@@ -4,26 +4,6 @@
 #include <allegro5/allegro.h>
 #include <chipmunk/chipmunk.h>
 
-/* Generic entity node */
-typedef struct ENT_NODE{
-  /* Shape, body and bitmap are NULL if we want to render a string */
-  cpShape *shape;
-  cpBody *body;
-  cpBool has_direct_pointer;
-  cpVect position;
-  /* Bitmap is null if the object is a trigger */
-  ALLEGRO_BITMAP *bitmap;
-  char *string;
-  unsigned short bitmap_width, bitmap_height;
-  /* !WARNING!
-   * These are used as coordinates in case of string */
-  double body_width, body_height;
-  unsigned char layer;
-  /* Used for progressbars */
-  double *monitored_value_pointer;
-  struct ENT_NODE *next, *prev;
-}ENT_NODE;
-
 /* This is our new storage for bitmaps, old one was too bulky
  * now it is pretty slim */
 typedef struct BITMAP_PLAIN{
@@ -123,15 +103,14 @@ extern unsigned int nophys_progress_count;
 extern ENT_PHYS_TRIGGER *phys_trigger_list;
 extern unsigned int phys_trigger_count;
 
-extern ENT_NODE *ent_top;
-
-ENT_PHYS_DYNAMIC *add_entity_mobile(cpVect position, double radius, double mass, unsigned int bitmap, unsigned char layer);
-ENT_PHYS_STATIC *add_entity_static(cpVect position, double width, double height, unsigned int bitmap, unsigned char layer);
+ENT_PHYS_DYNAMIC *add_entity_mobile(cpVect position, double radius, double mass, double angle, unsigned int bitmap, unsigned char layer);
+ENT_PHYS_STATIC *add_entity_static(cpVect position, double width, double height, double angle, unsigned int bitmap, unsigned char layer);
 ENT_NOPHYS_TEXT *add_entity_text(cpVect position, char *string, unsigned char layer);
 ENT_NOPHYS_TEXT *add_entity_text_direct(cpVect position, char *string, unsigned char layer);
 ENT_NOPHYS_STATIC *add_entity_nophys(cpVect position, double width, double height, unsigned int bitmap, unsigned char layer);
 ENT_NOPHYS_PROGBAR *add_entity_bar(cpVect position, double length, double height, double *monitored_value, unsigned char layer);
 int bind_trigger(ENT_PHYS_STATIC *node, cpBool collision);
+int bind_dead(ENT_PHYS_STATIC *node);
 int bind_level_seam(ENT_PHYS_STATIC *node);
 void stop_interfacer(void);
 

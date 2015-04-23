@@ -7,7 +7,6 @@ RENDER renderer;
 /* Initialize base, image, text, fonts */
 int init_render(unsigned short view_width, unsigned short view_height){
   unsigned char i = 0;
-  int oldflags = 0;
 
   /* Initialize Allegro engine */
   (void)puts("Initializing Allegro engine");

@@ -31,10 +31,8 @@ unsigned int nophys_progress_count = 0;
 ENT_PHYS_TRIGGER *phys_trigger_list = NULL;
 unsigned int phys_trigger_count = 0;
 
-ENT_NODE *ent_top = NULL;
-
 /* Add a new movable entity to our game, inform chipmunk and allocate bitmap */
-ENT_PHYS_DYNAMIC *add_entity_mobile(cpVect position, double radius, double mass, unsigned int bitmap, unsigned char layer){
+ENT_PHYS_DYNAMIC *add_entity_mobile(cpVect position, double radius, double mass, double angle, unsigned int bitmap, unsigned char layer){
   ENT_PHYS_DYNAMIC *new_node = calloc(1, sizeof(ENT_PHYS_DYNAMIC));
   BITMAP_PLAIN *temp = plaint_bitmap_list;
   double moment = cpMomentForCircle(mass, 0.0, radius, cpvzero);
@@ -47,6 +45,7 @@ ENT_PHYS_DYNAMIC *add_entity_mobile(cpVect position, double radius, double mass,
   new_node->shape = cpSpaceAddShape(phys_space, cpCircleShapeNew(new_node->body, radius, cpvzero));
   cpBodySetMoment(new_node->body, INFINITY);
   cpBodySetPosition(new_node->body, position);
+  cpBodySetAngle(new_node->body, angle);
   cpShapeSetFriction(new_node->shape, 0.2);
   cpShapeSetElasticity(new_node->shape, 1.0);
   cpShapeSetCollisionType(new_node->shape, PLAYER_COLLISION);
@@ -63,7 +62,7 @@ ENT_PHYS_DYNAMIC *add_entity_mobile(cpVect position, double radius, double mass,
 }
 
 /* Add a static (non-movable) entity to our game */
-ENT_PHYS_STATIC *add_entity_static(cpVect position, double width, double height, unsigned int bitmap, unsigned char layer){
+ENT_PHYS_STATIC *add_entity_static(cpVect position, double width, double height, double angle, unsigned int bitmap, unsigned char layer){
   ENT_PHYS_STATIC *new_node = calloc(1, sizeof(ENT_PHYS_STATIC));
   BITMAP_PLAIN *temp = plaint_bitmap_list;
   unsigned int i = 0;
@@ -73,7 +72,7 @@ ENT_PHYS_STATIC *add_entity_static(cpVect position, double width, double height,
   new_node->body = cpBodyNewStatic();
   new_node->shape = cpBoxShapeNew(new_node->body, width, height, 0.1);
   cpBodySetPosition(new_node->body, position);
-
+  cpBodySetAngle(new_node->body, angle);
   cpSpaceAddShape(phys_space, new_node->shape);
   cpShapeSetFriction(new_node->shape, 0.1);
   cpShapeSetElasticity(new_node->shape, 0.9);
@@ -106,6 +105,19 @@ int bind_trigger(ENT_PHYS_STATIC *node, cpBool collision){
   }else{
     cpShapeSetSensor(node->shape, cpFalse);
   }
+
+  return 0;
+}
+
+int bind_dead(ENT_PHYS_STATIC *node){
+  if(node == NULL){
+    (void)puts("Deathwall without node, not gonna happen!");
+    return -2;
+  }
+
+  cpShapeSetCollisionType(node->shape, DEATHWALL_COLLISION);
+
+  cpShapeSetSensor(node->shape, cpFalse);
 
   return 0;
 }
@@ -185,7 +197,7 @@ ENT_NOPHYS_PROGBAR *add_entity_bar(cpVect position, double length, double height
   ENT_NOPHYS_PROGBAR *new_node = NULL;
 
   if(monitored_value_pointer){
-    new_node = calloc(1, sizeof(ENT_NODE));
+    new_node = calloc(1, sizeof(ENT_NOPHYS_PROGBAR));
     new_node->height = height;
     new_node->length = length;
     new_node->position_x = position.x;
@@ -197,22 +209,6 @@ ENT_NOPHYS_PROGBAR *add_entity_bar(cpVect position, double length, double height
   }
 
   return new_node;
-}
-
-/* Remove entity with specififc address */
-void del_entity(ENT_NODE *target){
-
-  if(target && ent_top){
-    DL_DELETE(ent_top, target);
-    cpSpaceRemoveShape(phys_space, target->shape);
-    /* We did not add static bodies to space */
-    if(cpBodyGetType(target->body) != CP_BODY_TYPE_STATIC){
-      cpSpaceRemoveBody(phys_space, target->body);
-    }
-    cpShapeFree(target->shape);
-    cpBodyFree(target->body);
-  }
-
 }
 
 /* Free all resources */

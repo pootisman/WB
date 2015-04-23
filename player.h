@@ -30,6 +30,10 @@ static void reach_teleport(cpArbiter *arbiter, cpSpace *space, void *data){
   did_reach_teleport = cpTrue;
 }
 
+static void die_now(cpArbiter *arbiter, cpSpace *space, void *data){
+  single_player.health = 0;
+}
+
 void load_skin(char *file);
 PLAYER *spawn(cpBody *player_body);
 

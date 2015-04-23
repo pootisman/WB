@@ -9,7 +9,7 @@ cpVect gravity;
 cpShape *bed = NULL, *player_shape = NULL, *static_shape = NULL;
 cpBody *player_body = NULL;
 cpFloat player_mass, player_radius, player_moment;
-cpCollisionHandler *gap_of_death = NULL, *amp = NULL, *levels_end = NULL;
+cpCollisionHandler *gap_of_death = NULL, *amp = NULL, *levels_end = NULL, *deathwall = NULL;
 cpSpaceHash *space_hash = NULL;
 
 /* Prepare space for our game */
@@ -33,6 +33,7 @@ int init_phys(){
   
   (void)fputs("[Adding collision handlers>--", stdout);
   
+  deathwall = cpSpaceAddCollisionHandler(phys_space, PLAYER_COLLISION, DEATHWALL_COLLISION);
   gap_of_death = cpSpaceAddCollisionHandler(phys_space, PLAYER_COLLISION, TRIGGER_COLLISION);
   levels_end = cpSpaceAddCollisionHandler(phys_space, PLAYER_COLLISION, ENDLEVEL_COLLISION);
   amp = cpSpaceAddCollisionHandler(phys_space, PLAYER_COLLISION, POWERUP_COLLISION);

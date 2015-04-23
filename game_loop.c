@@ -23,22 +23,28 @@ struct timeval time_now, time_stop;
 double timeleft = 0.0;
 char playing_string[128] = {0};
 char health_string[32] = {0};
+char level_string[16] = {0};
 
 float display_x_offset = 0.0f;
 cpBool did_reach_teleport = cpFalse;
 
-inline void add_platform(cpVect position){
-  add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, 2, RENDER_NUM_LAYERS - 2);
+inline void add_platform(cpVect position, double rotation){
+  add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, rotation, 2, RENDER_NUM_LAYERS - 2);
 }
 
 inline void add_hole(cpVect position){
-  ENT_PHYS_STATIC *temp = add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, 0,  RENDER_NUM_LAYERS - 2);
+  ENT_PHYS_STATIC *temp = add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, 0.0, 0,  RENDER_NUM_LAYERS - 2);
   bind_trigger(temp, cpFalse);
 }
 
+inline void add_deathwall(cpVect position){
+  ENT_PHYS_STATIC *temp = add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, 0.0, 0, RENDER_NUM_LAYERS - 2);
+  bind_dead(temp);
+}
+
 inline void add_level_teleport(cpVect position){
-  ENT_PHYS_STATIC *temp = add_entity_static(position, 1, renderer.view_height, 0,  RENDER_NUM_LAYERS - 2);
-  bind_trigger(temp, cpFalse);
+  ENT_PHYS_STATIC *temp = add_entity_static(position, 500, renderer.view_height, 0.0, 0,  RENDER_NUM_LAYERS - 2);
+  bind_level_seam(temp);
 }
 
 /* Load critical resources, such as background image,
@@ -73,16 +79,17 @@ void init_level(){
 
   /* Kludge master */
   spawn(NULL);
-  temp_dyn = add_entity_mobile(cpv(40.0, 100.0), single_player.radius, single_player.mass, 3, RENDER_NUM_LAYERS -2);
+  temp_dyn = add_entity_mobile(cpv(40.0, 100.0), single_player.radius, single_player.mass, 0.0, 3, RENDER_NUM_LAYERS - 2);
   spawn(temp_dyn->body);
 
   /* Create a teleport to next level */
-  temp_static = add_entity_static(cpv(renderer.view_width * 5, 0), 1, renderer.view_height, 0, RENDER_NUM_LAYERS - 2);
+  temp_static = add_entity_static(cpv(renderer.view_width * 10, 0), 1, renderer.view_height, 0.0, 0, RENDER_NUM_LAYERS - 2);
   bind_level_seam(temp_static);
 
-  sprintf(&(playing_string[0]), "Player %s is in the game.", single_player.player_name);
+  sprintf(&(playing_string[0]), "Player %s is in the game.", single_player.player_name); 
   add_entity_text_direct( cpv(10, 10), &(playing_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 30), &(health_string[0]), RENDER_NUM_LAYERS - 1);
+  add_entity_text_direct( cpv(10, 50), &(level_string[0]), RENDER_NUM_LAYERS - 1);
 }
 
 /* Generate a next chunk of our level */
@@ -91,18 +98,18 @@ void gen_chunk(){
 
   for(i = -150; i < 150; i++){
     if((double)rand()/(double)RAND_MAX > 0.5){
-      add_platform(cpv(32+64*i, renderer.view_height - 16));
+      add_platform(cpv(32+64*i, renderer.view_height - 16), 0.0);
     }else{
       add_hole(cpv(32+ 64*i, renderer.view_height - 16));
     }
     if((double)rand()/(double)RAND_MAX > 0.3){
-      add_platform(cpv(32+64*i, 16));
+      add_platform(cpv(32+64*i, 16), 0.0);
     }else{
       add_hole(cpv(32+ 64*i, 16));
     }
 
     if(rand() % 5 == 0){
-      add_platform(cpv(32 + 64 * i, 48 + (renderer.view_height - 96) * ((int)(((double)rand()/(double)RAND_MAX)*10))/10.0));
+      add_platform(cpv(32 + 64 * i, 48 + (renderer.view_height - 96) * ((int)(((double)rand()/(double)RAND_MAX)*10))/10.0), 0.0);
     }
 
   }
@@ -146,6 +153,7 @@ int run_loop(){
 
   gettimeofday(&time_now, NULL);
   time_stop.tv_sec = time_now.tv_sec + TIMEOUT;
+  sprintf(&(level_string[0]), "Level %d", level_counter);
 
   while(single_player.health > 0 && time_stop.tv_sec > time_now.tv_sec){
     gettimeofday(&time_now, NULL);
