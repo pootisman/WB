@@ -1,5 +1,6 @@
 #include "game_phys.h"
 #include "pre_menu.h"
+#include "bomb.h"
 #include "interfacer.h"
 #include "utlist.h"
 
@@ -30,6 +31,9 @@ unsigned int nophys_progress_count = 0;
 
 ENT_PHYS_TRIGGER *phys_trigger_list = NULL;
 unsigned int phys_trigger_count = 0;
+
+/* Some high-level stuff */
+BOMB *bomb_list = NULL;
 
 /* Add a new movable entity to our game, inform chipmunk and allocate bitmap */
 ENT_PHYS_DYNAMIC *add_entity_mobile(cpVect position, double radius, double mass, double angle, unsigned int bitmap, unsigned char layer){
@@ -117,7 +121,7 @@ int bind_dead(ENT_PHYS_STATIC *node){
 
   cpShapeSetCollisionType(node->shape, DEATHWALL_COLLISION);
 
-  cpShapeSetSensor(node->shape, cpFalse);
+  cpShapeSetSensor(node->shape, cpTrue);
 
   return 0;
 }
@@ -129,6 +133,45 @@ int bind_level_seam(ENT_PHYS_STATIC *node){
   }
 
   cpShapeSetCollisionType(node->shape, ENDLEVEL_COLLISION);
+
+  cpShapeSetSensor(node->shape, cpTrue);
+
+  return 0;
+}
+
+int bind_bomb_trigger(ENT_PHYS_DYNAMIC *node){
+  if(node == NULL){
+    (void)puts("Level end needs a node");
+    return -2;
+  }
+
+  cpShapeSetCollisionType(node->shape, BOMB_ACTIVATOR_COLLISION);
+
+  cpShapeSetSensor(node->shape, cpTrue);
+
+  return 0;
+}
+
+int bind_bomb_kaboom(ENT_PHYS_DYNAMIC *node){
+  if(node == NULL){
+    (void)puts("Level end needs a node");
+    return -2;
+  }
+
+  cpShapeSetCollisionType(node->shape, BOMB_KABOOM_COLLISION);
+
+  cpShapeSetSensor(node->shape, cpFalse);
+
+  return 0;
+}
+
+int bind_powerup(ENT_PHYS_DYNAMIC *node){
+  if(node == NULL){
+    (void)puts("Level end needs a node");
+    return -2;
+  }
+
+  cpShapeSetCollisionType(node->shape, POWERUP_COLLISION);
 
   cpShapeSetSensor(node->shape, cpFalse);
 
@@ -211,8 +254,44 @@ ENT_NOPHYS_PROGBAR *add_entity_bar(cpVect position, double length, double height
   return new_node;
 }
 
+/* Create a bomb in the game engine and arm it */
+BOMB *spawn_bomb(cpVect position){
+  ENT_PHYS_DYNAMIC *temp = add_entity_mobile(position, BOMB_RADIUS, BOMB_MASS, 0.0, 4, RENDER_NUM_LAYERS - 2);
+  BOMB *new_bomb = NULL;
+
+  if(temp == NULL){
+    return NULL;
+  }
+
+  new_bomb = calloc(1, sizeof(BOMB));
+
+  DL_APPEND(bomb_list, new_bomb);
+
+  new_bomb->bomb_body = temp->body;
+  new_bomb->bomb_shape = temp->shape;
+  new_bomb->bomb_activator = add_entity_mobile(position, BOMB_SPLASH * 20.0, 1.0, 0.0, 0, RENDER_NUM_LAYERS - 2);
+  bind_bomb_trigger(new_bomb->bomb_activator);
+  bind_bomb_kaboom(temp);
+  new_bomb->bind_with_activator = cpSpaceAddConstraint( phys_space, cpPinJointNew(new_bomb->bomb_body, new_bomb->bomb_activator->body, cpv(0.0, 0.0), cpv(0.0, 0.0)));
+
+  new_bomb->health = 255;
+
+  return new_bomb;
+}
+
+void remove_by_body(cpBody *target, ENT_PHYS_DYNAMIC *top){
+  while(top->next != NULL){
+    if(top->body == target){
+      DL_DELETE(dynamic_phys_body_list, top);
+      return;
+    }
+    top = top->next;
+  }
+}
+
 /* Free all resources */
 void stop_interfacer(void){
+  /* Low-level storages */
   ENT_PHYS_DYNAMIC *temp_phys_dynamic = NULL;
   ENT_PHYS_STATIC *temp_phys_static = NULL;
   ENT_NOPHYS_DYNAMIC *temp_nophys_dynamic = NULL;
@@ -220,6 +299,15 @@ void stop_interfacer(void){
   ENT_NOPHYS_TEXT *temp_nophys_text = NULL;
   ENT_NOPHYS_PROGBAR *temp_nophys_progbar = NULL;
   BITMAP_PLAIN *temp_bitmap = NULL;
+
+  /* NPC and pickups */
+  BOMB *temp_bomb = NULL;
+
+  DL_FOREACH(bomb_list, temp_bomb){
+    DL_DELETE(bomb_list, temp_bomb);
+    cpConstraintFree(temp_bomb->bind_with_activator);
+    free(temp_bomb);
+  }
 
   DL_FOREACH(dynamic_phys_body_list, temp_phys_dynamic){
     DL_DELETE(dynamic_phys_body_list, temp_phys_dynamic);

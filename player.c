@@ -13,7 +13,7 @@ void load_skin(char *file){
   }
 }
 
-PLAYER *spawn(cpBody *player_body){
+PLAYER *spawn_player(cpBody *player_body){
   single_player.radius = DEF_PLAYER_RADIUS;
   single_player.mass = DEF_PLAYER_MASS;
   single_player.body = player_body;

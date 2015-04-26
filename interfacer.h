@@ -112,6 +112,11 @@ ENT_NOPHYS_PROGBAR *add_entity_bar(cpVect position, double length, double height
 int bind_trigger(ENT_PHYS_STATIC *node, cpBool collision);
 int bind_dead(ENT_PHYS_STATIC *node);
 int bind_level_seam(ENT_PHYS_STATIC *node);
+int bind_bomb_trigger(ENT_PHYS_DYNAMIC *node);
+int bind_bomb_kaboom(ENT_PHYS_DYNAMIC *node);
+
+void remove_by_body(cpBody *target, ENT_PHYS_DYNAMIC *top);
+
 void stop_interfacer(void);
 
 #endif

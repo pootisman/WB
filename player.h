@@ -4,6 +4,7 @@
 #include <allegro5/allegro.h>
 #include "common_vars.h"
 #include "game_loop.h"
+#include "interfacer.h"
 
 #define DEF_PLAYER_RADIUS 16.0
 #define DEF_PLAYER_MASS 70.0
@@ -21,20 +22,68 @@ typedef struct PLAYER{
 
 extern PLAYER single_player;
 
+/* Harm applied after falling into a hole */
 static cpBool get_hurt(cpArbiter *arbiter, cpSpace *space, void *data){
   single_player.health -= 20;
   return cpTrue;
 }
 
-static void reach_teleport(cpArbiter *arbiter, cpSpace *space, void *data){
+/* We reached the end the level, tell game_loop to regenerate all stuff */
+static cpBool reach_teleport(cpArbiter *arbiter, cpSpace *space, void *data){
   did_reach_teleport = cpTrue;
+  return cpTrue;
 }
 
-static void die_now(cpArbiter *arbiter, cpSpace *space, void *data){
-  single_player.health = 0;
+/* Die if there is no shield */
+static cpBool die_now(cpArbiter *arbiter, cpSpace *space, void *data){
+  cpBody **bodyA, **bodyB;
+  if(single_player.buffed == 0){
+    single_player.health = 0;
+  }else{
+    bodyA = calloc(1, sizeof(cpBody *));
+    bodyB = calloc(1, sizeof(cpBody *));
+
+    /* Remove pickup from game */
+    cpArbiterGetBodies(arbiter, bodyA, bodyB);
+
+    /* SHHIIIIHHS */
+    if(single_player.body == *bodyA){
+      remove_by_body(*bodyB, dynamic_phys_body_list);
+    }else{
+      remove_by_body(*bodyA, dynamic_phys_body_list);
+    }
+
+    single_player.buffed--;
+  }
+  return cpTrue;
+}
+
+/* Player can withstand multiple hits with a shield pickup */
+static cpBool buff(cpArbiter *arbiter, cpSpace *space, void *data){
+  cpBody **bodyA, **bodyB;
+
+  if(single_player.buffed >= UCHAR_MAX){
+    return cpTrue;
+  }
+
+  single_player.buffed++;
+  bodyA = calloc(1, sizeof(cpBody *));
+  bodyB = calloc(1, sizeof(cpBody *));
+
+  /* Remove pickup from game */
+  cpArbiterGetBodies(arbiter, bodyA, bodyB);
+
+  /* SHHIIIIHHS */
+  if(single_player.body == *bodyA){
+    cpBodySetPosition(*bodyB, cpv(9999,99999));
+  }else{
+    cpBodySetPosition(*bodyA, cpv(9999,99999));
+  }
+
+  return cpTrue;
 }
 
 void load_skin(char *file);
-PLAYER *spawn(cpBody *player_body);
+PLAYER *spawn_player(cpBody *player_body);
 
 #endif

@@ -14,6 +14,8 @@
 #define POWERUP_COLLISION  0x0F00
 #define ENDLEVEL_COLLISION  0xF000
 #define DEATHWALL_COLLISION  0xF00F
+#define BOMB_ACTIVATOR_COLLISION 0xF0F0
+#define BOMB_KABOOM_COLLISION 0xF0FF
 
 extern cpSpace *phys_space;
 extern cpVect gravity;

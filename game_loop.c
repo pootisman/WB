@@ -2,6 +2,7 @@
 #include <sys/time.h>
 #include "interfacer.h"
 #include "player.h"
+#include "bomb.h"
 #include "game_phys.h"
 #include "game_loop.h"
 #include "render.h"
@@ -24,6 +25,7 @@ double timeleft = 0.0;
 char playing_string[128] = {0};
 char health_string[32] = {0};
 char level_string[16] = {0};
+char shield_string[16] = {0};
 
 float display_x_offset = 0.0f;
 cpBool did_reach_teleport = cpFalse;
@@ -55,6 +57,8 @@ void init_critical(){
   precache_bitmap("Background_space.tga");
   precache_bitmap("Platform.tga");
   precache_bitmap("Ball.tga");
+  precache_bitmap("Bomb.tga");
+  precache_bitmap("PWUp.tga");
 }
 
 /* TODO: Fix double spawn of the player somehow */
@@ -78,18 +82,19 @@ void init_level(){
   add_entity_bar(cpv(250, 15), renderer.view_width * 0.5, 10, &timeleft, RENDER_NUM_LAYERS - 1);
 
   /* Kludge master */
-  spawn(NULL);
+  spawn_player(NULL);
   temp_dyn = add_entity_mobile(cpv(40.0, 100.0), single_player.radius, single_player.mass, 0.0, 3, RENDER_NUM_LAYERS - 2);
-  spawn(temp_dyn->body);
+  spawn_player(temp_dyn->body);
 
   /* Create a teleport to next level */
-  temp_static = add_entity_static(cpv(renderer.view_width * 10, 0), 1, renderer.view_height, 0.0, 0, RENDER_NUM_LAYERS - 2);
+  temp_static = add_entity_static(cpv(renderer.view_width * 5, 0), 1, renderer.view_height, 0.0, 0, RENDER_NUM_LAYERS - 2);
   bind_level_seam(temp_static);
 
   sprintf(&(playing_string[0]), "Player %s is in the game.", single_player.player_name); 
   add_entity_text_direct( cpv(10, 10), &(playing_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 30), &(health_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 50), &(level_string[0]), RENDER_NUM_LAYERS - 1);
+  add_entity_text_direct( cpv(10, 70), &(shield_string[0]), RENDER_NUM_LAYERS - 1);
 }
 
 /* Generate a next chunk of our level */
@@ -99,6 +104,11 @@ void gen_chunk(){
   for(i = -150; i < 150; i++){
     if((double)rand()/(double)RAND_MAX > 0.5){
       add_platform(cpv(32+64*i, renderer.view_height - 16), 0.0);
+      if((double)rand()/(double)RAND_MAX > 0.9){
+        spawn_bomb(cpv(32+64*i,renderer.view_height - 48));
+      }else if((double)rand()/(double)RAND_MAX > 0.5){
+        bind_powerup(add_entity_mobile(cpv(32+64*i,renderer.view_height - 48), BOMB_RADIUS, BOMB_MASS * 2.0, 0.0, 5, RENDER_NUM_LAYERS - 2));
+      }
     }else{
       add_hole(cpv(32+ 64*i, renderer.view_height - 16));
       add_deathwall(cpv(32+ 64*i, renderer.view_height + 16));
@@ -159,6 +169,7 @@ int run_loop(){
 
   while(single_player.health > 0 && time_stop.tv_sec > time_now.tv_sec){
     gettimeofday(&time_now, NULL);
+    sprintf(&(shield_string[0]), "Shields %d", single_player.buffed);
 
     timeleft = (double)(time_stop.tv_sec - time_now.tv_sec)/(double)TIMEOUT;
 

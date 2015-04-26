@@ -3,13 +3,14 @@
 #include "game_phys.h"
 #include "player.h"
 #include "common_vars.h"
+#include "bomb.h"
 
 cpSpace *phys_space = NULL;
 cpVect gravity;
 cpShape *bed = NULL, *player_shape = NULL, *static_shape = NULL;
 cpBody *player_body = NULL;
 cpFloat player_mass, player_radius, player_moment;
-cpCollisionHandler *gap_of_death = NULL, *amp = NULL, *levels_end = NULL, *deathwall = NULL;
+cpCollisionHandler *gap_of_death = NULL, *amp = NULL, *levels_end = NULL, *deathwall = NULL, *bomb_activ = NULL, *bomb_kaboom = NULL;
 cpSpaceHash *space_hash = NULL;
 
 /* Prepare space for our game */
@@ -33,6 +34,8 @@ int init_phys(){
   
   (void)fputs("[Adding collision handlers>--", stdout);
   
+  bomb_kaboom = cpSpaceAddCollisionHandler(phys_space, PLAYER_COLLISION, BOMB_KABOOM_COLLISION);
+  bomb_activ = cpSpaceAddCollisionHandler(phys_space, PLAYER_COLLISION, BOMB_ACTIVATOR_COLLISION);
   deathwall = cpSpaceAddCollisionHandler(phys_space, PLAYER_COLLISION, DEATHWALL_COLLISION);
   gap_of_death = cpSpaceAddCollisionHandler(phys_space, PLAYER_COLLISION, TRIGGER_COLLISION);
   levels_end = cpSpaceAddCollisionHandler(phys_space, PLAYER_COLLISION, ENDLEVEL_COLLISION);
@@ -47,6 +50,9 @@ int init_phys(){
   gap_of_death->preSolveFunc = get_hurt;
   levels_end->preSolveFunc = reach_teleport;
   deathwall->preSolveFunc = die_now;
+  bomb_activ->preSolveFunc = approach_target;
+  bomb_kaboom->preSolveFunc = die_now;
+  amp->preSolveFunc = buff;
 
   return 0;
 }
