@@ -7,7 +7,7 @@
 #include "interfacer.h"
 
 #define DEF_PLAYER_RADIUS 16.0
-#define DEF_PLAYER_MASS 70.0
+#define DEF_PLAYER_MASS 32.0
 
 typedef struct PLAYER{
   char skin[32];
@@ -36,25 +36,7 @@ static cpBool reach_teleport(cpArbiter *arbiter, cpSpace *space, void *data){
 
 /* Die if there is no shield */
 static cpBool die_now(cpArbiter *arbiter, cpSpace *space, void *data){
-  cpBody **bodyA, **bodyB;
-  if(single_player.buffed == 0){
-    single_player.health = 0;
-  }else{
-    bodyA = calloc(1, sizeof(cpBody *));
-    bodyB = calloc(1, sizeof(cpBody *));
-
-    /* Remove pickup from game */
-    cpArbiterGetBodies(arbiter, bodyA, bodyB);
-
-    /* SHHIIIIHHS */
-    if(single_player.body == *bodyA){
-      remove_by_body(*bodyB, dynamic_phys_body_list);
-    }else{
-      remove_by_body(*bodyA, dynamic_phys_body_list);
-    }
-
-    single_player.buffed--;
-  }
+  single_player.health = 0;
   return cpTrue;
 }
 

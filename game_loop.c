@@ -27,6 +27,8 @@ char health_string[32] = {0};
 char level_string[16] = {0};
 char shield_string[16] = {0};
 
+unsigned int level_counter = 0;
+
 float display_x_offset = 0.0f;
 cpBool did_reach_teleport = cpFalse;
 
@@ -82,12 +84,11 @@ void init_level(){
   add_entity_bar(cpv(250, 15), renderer.view_width * 0.5, 10, &timeleft, RENDER_NUM_LAYERS - 1);
 
   /* Kludge master */
-  spawn_player(NULL);
-  temp_dyn = add_entity_mobile(cpv(40.0, 100.0), single_player.radius, single_player.mass, 0.0, 3, RENDER_NUM_LAYERS - 2);
+  temp_dyn = add_entity_mobile(cpv(40.0, 100.0), DEF_PLAYER_RADIUS, DEF_PLAYER_MASS, 0.0, 3, RENDER_NUM_LAYERS - 2);
   spawn_player(temp_dyn->body);
 
   /* Create a teleport to next level */
-  temp_static = add_entity_static(cpv(renderer.view_width * 5, 0), 1, renderer.view_height, 0.0, 0, RENDER_NUM_LAYERS - 2);
+  temp_static = add_entity_static(cpv(renderer.view_width * 5, 0), renderer.view_width, renderer.view_height, 0.0, 0, RENDER_NUM_LAYERS - 2);
   bind_level_seam(temp_static);
 
   sprintf(&(playing_string[0]), "Player %s is in the game.", single_player.player_name); 
@@ -104,10 +105,10 @@ void gen_chunk(){
   for(i = -150; i < 150; i++){
     if((double)rand()/(double)RAND_MAX > 0.5){
       add_platform(cpv(32+64*i, renderer.view_height - 16), 0.0);
-      if((double)rand()/(double)RAND_MAX > 0.9){
+      if((double)rand()/(double)RAND_MAX > 0.9/level_counter){
         spawn_bomb(cpv(32+64*i,renderer.view_height - 48));
-      }else if((double)rand()/(double)RAND_MAX > 0.5){
-        bind_powerup(add_entity_mobile(cpv(32+64*i,renderer.view_height - 48), BOMB_RADIUS, BOMB_MASS * 2.0, 0.0, 5, RENDER_NUM_LAYERS - 2));
+      }else if((double)rand()/(double)RAND_MAX > 0.5/level_counter){
+        bind_powerup(add_entity_mobile(cpv(32+64*i,renderer.view_height - 48), BOMB_RADIUS, 1.0, 0.0, 5, RENDER_NUM_LAYERS - 2));
       }
     }else{
       add_hole(cpv(32+ 64*i, renderer.view_height - 16));
@@ -156,7 +157,7 @@ void track_player(){
 
 /* Loop functioon for our game, UGLY GOTO DETECTED! */
 int run_loop(){
-  unsigned int level_counter = 0;
+
   gamereset:
   level_counter++;
   did_reach_teleport = cpFalse;
@@ -183,18 +184,18 @@ int run_loop(){
 
     al_get_keyboard_state(&renderer.kb_state);
     if(al_key_down(&renderer.kb_state, ALLEGRO_KEY_DOWN)){
-      cpBodyApplyImpulseAtWorldPoint(single_player.body, cpv(0.0, 120.0), cpv(0.0, 0.0));
+      cpBodyApplyImpulseAtWorldPoint(single_player.body, cpv(0.0, 150.0), cpv(0.0, 0.0));
       (void)puts("Down key pressed, applying impulse.");
     }else if(al_key_down(&renderer.kb_state, ALLEGRO_KEY_UP)){
-      cpBodyApplyImpulseAtWorldPoint(single_player.body, cpv(0.0, -120.0), cpv(0.0, 0.0));
+      cpBodyApplyImpulseAtWorldPoint(single_player.body, cpv(0.0, -150.0), cpv(0.0, 0.0));
       (void)puts("Up key pressed, applying impulse.");
     }
 
     if(al_key_down(&renderer.kb_state, ALLEGRO_KEY_LEFT)){
-      cpBodyApplyImpulseAtWorldPoint(single_player.body, cpv(-120.0, 0.0), cpv(0.0, 0.0));
+      cpBodyApplyImpulseAtWorldPoint(single_player.body, cpv(-150.0, 0.0), cpv(0.0, 0.0));
       (void)puts("Left key pressed, applying impulse.");
     }else if(al_key_down(&renderer.kb_state, ALLEGRO_KEY_RIGHT)){
-      cpBodyApplyImpulseAtWorldPoint(single_player.body, cpv(120.0, 0.0), cpv(0.0, 0.0));
+      cpBodyApplyImpulseAtWorldPoint(single_player.body, cpv(150.0, 0.0), cpv(0.0, 0.0));
       (void)puts("Right key pressed, applying impulse.");
     }
 
@@ -232,6 +233,8 @@ int run_loop(){
 
     render_layers();
     render_finalize_and_draw();
+
+    free_entities();
 
     cpSpaceStep(phys_space, DEF_TIME_STEP);
 

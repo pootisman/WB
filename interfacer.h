@@ -114,8 +114,11 @@ int bind_dead(ENT_PHYS_STATIC *node);
 int bind_level_seam(ENT_PHYS_STATIC *node);
 int bind_bomb_trigger(ENT_PHYS_DYNAMIC *node);
 int bind_bomb_kaboom(ENT_PHYS_DYNAMIC *node);
+int bind_powerup(ENT_PHYS_DYNAMIC *node);
 
-void remove_by_body(cpBody *target, ENT_PHYS_DYNAMIC *top);
+void remove_ent_phy_dyn(ENT_PHYS_DYNAMIC *target);
+
+void free_entities(void);
 
 void stop_interfacer(void);
 

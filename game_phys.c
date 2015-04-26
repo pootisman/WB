@@ -51,7 +51,7 @@ int init_phys(){
   levels_end->preSolveFunc = reach_teleport;
   deathwall->preSolveFunc = die_now;
   bomb_activ->preSolveFunc = approach_target;
-  bomb_kaboom->preSolveFunc = die_now;
+  bomb_kaboom->preSolveFunc = detonate;
   amp->preSolveFunc = buff;
 
   return 0;

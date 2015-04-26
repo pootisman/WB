@@ -1,6 +1,5 @@
 #include "game_phys.h"
 #include "pre_menu.h"
-#include "bomb.h"
 #include "interfacer.h"
 #include "utlist.h"
 
@@ -12,16 +11,24 @@ BITMAP_PLAIN *plaint_bitmap_list = NULL;
 unsigned int bitmap_counter = 0;
 
 ENT_PHYS_DYNAMIC *dynamic_phys_body_list = NULL;
+ENT_PHYS_DYNAMIC *dynamic_phys_body_delete = NULL;
 unsigned int dynamic_phys_body_count = 0;
+unsigned int dynamic_phys_body_delete_count = 0;
 
 ENT_PHYS_STATIC *static_phys_body_list = NULL;
+ENT_PHYS_STATIC *static_phys_body_delete = NULL;
 unsigned int static_phys_body_count = 0;
+unsigned int static_phys_body_delete_count = 0;
 
 ENT_NOPHYS_DYNAMIC *dynamic_nophys_body_list = NULL;
+ENT_NOPHYS_DYNAMIC *dynamic_nophys_body_delete = NULL;
 unsigned int dynamic_nophys_body_count = 0;
+unsigned int dynamic_nophys_body_delete_count = 0;
 
 ENT_NOPHYS_STATIC *static_nophys_body_list = NULL;
+ENT_NOPHYS_STATIC *static_nophys_body_delete = NULL;
 unsigned int static_nophys_body_count = 0;
+unsigned int static_nophys_body_delete_count = 0;
 
 ENT_NOPHYS_TEXT *nophys_text_list = NULL;
 unsigned int nophys_text_count = 0;
@@ -31,9 +38,6 @@ unsigned int nophys_progress_count = 0;
 
 ENT_PHYS_TRIGGER *phys_trigger_list = NULL;
 unsigned int phys_trigger_count = 0;
-
-/* Some high-level stuff */
-BOMB *bomb_list = NULL;
 
 /* Add a new movable entity to our game, inform chipmunk and allocate bitmap */
 ENT_PHYS_DYNAMIC *add_entity_mobile(cpVect position, double radius, double mass, double angle, unsigned int bitmap, unsigned char layer){
@@ -254,38 +258,62 @@ ENT_NOPHYS_PROGBAR *add_entity_bar(cpVect position, double length, double height
   return new_node;
 }
 
-/* Create a bomb in the game engine and arm it */
-BOMB *spawn_bomb(cpVect position){
-  ENT_PHYS_DYNAMIC *temp = add_entity_mobile(position, BOMB_RADIUS, BOMB_MASS, 0.0, 4, RENDER_NUM_LAYERS - 2);
-  BOMB *new_bomb = NULL;
-
-  if(temp == NULL){
-    return NULL;
-  }
-
-  new_bomb = calloc(1, sizeof(BOMB));
-
-  DL_APPEND(bomb_list, new_bomb);
-
-  new_bomb->bomb_body = temp->body;
-  new_bomb->bomb_shape = temp->shape;
-  new_bomb->bomb_activator = add_entity_mobile(position, BOMB_SPLASH * 20.0, 1.0, 0.0, 0, RENDER_NUM_LAYERS - 2);
-  bind_bomb_trigger(new_bomb->bomb_activator);
-  bind_bomb_kaboom(temp);
-  new_bomb->bind_with_activator = cpSpaceAddConstraint( phys_space, cpPinJointNew(new_bomb->bomb_body, new_bomb->bomb_activator->body, cpv(0.0, 0.0), cpv(0.0, 0.0)));
-
-  new_bomb->health = 255;
-
-  return new_bomb;
+void remove_ent_phy_dyn(ENT_PHYS_DYNAMIC *target){
+  DL_DELETE(dynamic_phys_body_list, target);
+  DL_APPEND(dynamic_phys_body_delete, target);
+  dynamic_phys_body_delete_count++;
 }
 
-void remove_by_body(cpBody *target, ENT_PHYS_DYNAMIC *top){
-  while(top->next != NULL){
-    if(top->body == target){
-      DL_DELETE(dynamic_phys_body_list, top);
-      return;
-    }
-    top = top->next;
+void remove_ent_phy_sta(ENT_PHYS_STATIC *target){
+  DL_DELETE(static_phys_body_list, target);
+  DL_APPEND(static_phys_body_delete, target);
+  static_phys_body_delete_count++;
+}
+
+void remove_ent_nophy_dyn(ENT_PHYS_DYNAMIC *target){
+  DL_DELETE(dynamic_nophys_body_list, target);
+  DL_APPEND(dynamic_nophys_body_delete, target);
+  dynamic_nophys_body_delete_count++;
+}
+
+void remove_ent_nophy_sta(ENT_NOPHYS_STATIC *target){
+  DL_DELETE(static_nophys_body_list, target);
+  DL_APPEND(static_nophys_body_delete, target);
+  static_nophys_body_delete_count++;
+}
+
+void free_entities(){
+  ENT_PHYS_DYNAMIC *temp_phys_dynamic = NULL;
+  ENT_PHYS_STATIC *temp_phys_static = NULL;
+  ENT_NOPHYS_DYNAMIC *temp_nophys_dynamic = NULL;
+  ENT_NOPHYS_STATIC *temp_nophys_static = NULL;
+
+  DL_FOREACH(dynamic_phys_body_delete, temp_phys_dynamic){
+    DL_DELETE(dynamic_phys_body_delete, temp_phys_dynamic);
+    cpSpaceRemoveBody(phys_space, temp_phys_dynamic->body);
+    cpSpaceRemoveShape(phys_space, temp_phys_dynamic->shape);
+    free(temp_phys_dynamic);
+  }
+
+  DL_FOREACH(static_phys_body_delete, temp_phys_static){
+    DL_DELETE(static_phys_body_delete, temp_phys_static);
+    cpSpaceRemoveBody(phys_space, temp_phys_static->body);
+    cpSpaceRemoveShape(phys_space, temp_phys_static->shape);
+    free(temp_phys_static);
+  }
+
+  DL_FOREACH(dynamic_nophys_body_delete, temp_nophys_dynamic){
+    DL_DELETE(dynamic_nophys_body_delete, temp_nophys_dynamic);
+    cpSpaceRemoveBody(phys_space, temp_phys_dynamic->body);
+    cpSpaceRemoveShape(phys_space, temp_phys_dynamic->shape);
+    free(temp_phys_dynamic);
+  }
+
+  DL_FOREACH(static_phys_body_delete, temp_phys_static){
+    DL_DELETE(static_phys_body_delete, temp_phys_static);
+    cpSpaceRemoveBody(phys_space, temp_phys_static->body);
+    cpSpaceRemoveShape(phys_space, temp_phys_static->shape);
+    free(temp_phys_static);
   }
 }
 
@@ -299,15 +327,6 @@ void stop_interfacer(void){
   ENT_NOPHYS_TEXT *temp_nophys_text = NULL;
   ENT_NOPHYS_PROGBAR *temp_nophys_progbar = NULL;
   BITMAP_PLAIN *temp_bitmap = NULL;
-
-  /* NPC and pickups */
-  BOMB *temp_bomb = NULL;
-
-  DL_FOREACH(bomb_list, temp_bomb){
-    DL_DELETE(bomb_list, temp_bomb);
-    cpConstraintFree(temp_bomb->bind_with_activator);
-    free(temp_bomb);
-  }
 
   DL_FOREACH(dynamic_phys_body_list, temp_phys_dynamic){
     DL_DELETE(dynamic_phys_body_list, temp_phys_dynamic);
