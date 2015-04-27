@@ -63,9 +63,7 @@ void init_critical(){
   precache_bitmap("PWUp.tga");
 }
 
-/* TODO: Fix double spawn of the player somehow */
-
-/* Player is initialized here */
+/* Player, background, GUI and the whole level are initialized here */
 void init_level(){
   ENT_PHYS_DYNAMIC *temp_dyn;
   ENT_PHYS_STATIC *temp_static;
@@ -98,7 +96,7 @@ void init_level(){
   add_entity_text_direct( cpv(10, 70), &(shield_string[0]), RENDER_NUM_LAYERS - 1);
 }
 
-/* Generate a next chunk of our level */
+/* Generate a chunk of our level */
 void gen_chunk(){
   int i;
 
@@ -146,6 +144,7 @@ void track_player(){
     }
   }
 
+  /* Apply the transform to each level with different factors */
   al_identity_transform(&trans);
   al_translate_transform(&trans, -display_x_offset, 0.0);
   apply_trans_to_layer(&trans, RENDER_NUM_LAYERS - 2);

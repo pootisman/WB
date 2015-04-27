@@ -6,11 +6,13 @@
 #include "interfacer.h"
 #include "render.h"
 #include "player.h"
+#include "aux.h"
 
 #define BOMB_RADIUS 8.0
 #define BOMB_SPLASH 16.0
 #define BOMB_MASS 32.0
 #define BOMB_ACTIVATION 256.0
+#define BOMB_IMPULSE 64.0
 
 typedef struct BOMB{
   cpVect target;
@@ -31,9 +33,9 @@ static cpBool approach_target(cpArbiter *arbiter, cpSpace *space, void *data){
   (void)puts("Bomb active.");
 
   if(single_player.body == *bodyA){
-    cpBodyApplyImpulseAtWorldPoint(*bodyB, cpv(0.5 * (cpBodyGetPosition(*bodyA).x - cpBodyGetPosition(*bodyB).x), 0.5 * (cpBodyGetPosition(*bodyA).y - cpBodyGetPosition(*bodyB).y)), cpv(0.0, 0.0));
+    cpBodyApplyImpulseAtWorldPoint(*bodyB, pointer_vect_mul(cpBodyGetPosition(*bodyA), cpBodyGetPosition(*bodyB), BOMB_IMPULSE), cpv(0.0, 0.0));
   }else{
-    cpBodyApplyImpulseAtWorldPoint(*bodyA, cpv(0.5 * (cpBodyGetPosition(*bodyB).x - cpBodyGetPosition(*bodyA).x), 0.5 * (cpBodyGetPosition(*bodyB).y - cpBodyGetPosition(*bodyA).y)), cpv(0.0, 0.0));
+    cpBodyApplyImpulseAtWorldPoint(*bodyA, pointer_vect_mul(cpBodyGetPosition(*bodyB), cpBodyGetPosition(*bodyA), BOMB_IMPULSE), cpv(0.0, 0.0));
   }
 
   free(bodyA);
@@ -42,7 +44,7 @@ static cpBool approach_target(cpArbiter *arbiter, cpSpace *space, void *data){
   return cpTrue;
 }
 
-/* Explosive hugs */
+/* Explosive hugs, YAY! =D */
 static cpBool detonate(cpArbiter *arbiter, cpSpace *space, void *data){
   cpBody **bodyA = calloc(1, sizeof(cpBody *)), **bodyB = calloc(1, sizeof(cpBody *));
   BOMB *temp = NULL;

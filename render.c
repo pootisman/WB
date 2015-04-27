@@ -118,20 +118,21 @@ int init_render(unsigned short view_width, unsigned short view_height){
   return 0;
 }
 
-/* Add transformation to the layer */
+/* Add transformation to the layer transformations (Accumulates all treansforms) */
 void add_trans_to_layer(ALLEGRO_TRANSFORM *transform, unsigned char target_layer){
   if(transform){
     al_compose_transform(&(renderer.layer_transforms[target_layer]), transform);
   }
 }
 
+/* Apply transformation to the layer, dropping all other transforms */
 void apply_trans_to_layer(ALLEGRO_TRANSFORM *transform, unsigned char target_layer){
   if(transform){
     al_copy_transform(&(renderer.layer_transforms[target_layer]), transform);
   }
 }
 
-/* TODO: Fix colour assignment for text
+/* TODO
  * Render object to specific layer/bitmap
  */
 inline void render_layers(void){

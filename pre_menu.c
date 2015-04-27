@@ -15,21 +15,28 @@ int show_greeting(void){
   if(renderer.main_font){
     /* Wait for player to press enter or terminate the program on welcoming */
     while(1){
+      /* Clean up the screen */
       al_clear_to_color(al_map_rgb(0, 0, 0));
-      al_draw_scaled_bitmap(background, 0, 0, 1600, 1200, 0, 0, renderer.view_width, renderer.view_height, 0);
+      /* Draw background */
+      al_draw_scaled_bitmap(background, 0, 0, al_get_bitmap_width(background), al_get_bitmap_height(background), 0, 0, renderer.view_width, renderer.view_height, 0);
+      /* Display text */
       al_draw_text(renderer.main_font, al_map_rgb(241, 142, 0), 0.5f * renderer.view_width, 0.92f * renderer.view_height, ALLEGRO_ALIGN_CENTER, "Welcome, hit return to start.");
+      /* Draw the image to window */
       al_flip_display();
-      al_wait_for_event(renderer.main_queue, &renderer.event);
 
-      al_get_keyboard_state(&renderer.kb_state);
-      if(renderer.event.type == ALLEGRO_EVENT_KEY_DOWN && al_key_down(&renderer.kb_state, ALLEGRO_KEY_ENTER)){
-        (void)puts("User accepted welcoming");
-        al_destroy_bitmap(background);
-        return EXIT_SUCCESS;
-      }else if(renderer.event.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
-        (void)puts("User decided to chicken out");
-        al_destroy_bitmap(background);
-        return EXIT_FAILURE;
+      /* Wait for input, decide what to do based in input */
+      while(1){
+        al_wait_for_event(renderer.main_queue, &renderer.event);
+        al_get_keyboard_state(&renderer.kb_state);
+        if(renderer.event.type == ALLEGRO_EVENT_KEY_DOWN && al_key_down(&renderer.kb_state, ALLEGRO_KEY_ENTER)){
+          (void)puts("User accepted welcoming");
+          al_destroy_bitmap(background);
+          return EXIT_SUCCESS;
+        }else if(renderer.event.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
+          (void)puts("User decided to chicken out");
+          al_destroy_bitmap(background);
+          return EXIT_FAILURE;
+        }
       }
     }
   }
@@ -41,13 +48,13 @@ int show_greeting(void){
 int show_description(void){
   ALLEGRO_BITMAP *background = al_load_bitmap("Background_space.tga");
   if(renderer.main_font){
+    al_clear_to_color(al_map_rgb(0, 0, 0));
+    al_draw_scaled_bitmap(background, 0, 0, al_get_bitmap_width(background), al_get_bitmap_height(background), 0, 0, renderer.view_width, renderer.view_height, 0);
+    al_draw_text(renderer.main_font, al_map_rgb(241, 142, 0), 0.5f * renderer.view_width, 0.88f * renderer.view_height, ALLEGRO_ALIGN_CENTRE, "WizBall is a arcade scrolling game,");
+    al_draw_text(renderer.main_font, al_map_rgb(241, 142, 0), 0.5f * renderer.view_width, 0.92f * renderer.view_height, ALLEGRO_ALIGN_CENTRE, "your task is to navigate around and shoot baddies.");
+    al_flip_display();
     /* Wait for player to finish reading info or terminate the program */
     while(1){
-      al_clear_to_color(al_map_rgb(0, 0, 0));
-      al_draw_scaled_bitmap(background, 0, 0, 1600, 1200, 0, 0, renderer.view_width, renderer.view_height, 0);
-      al_draw_text(renderer.main_font, al_map_rgb(241, 142, 0), 0.5f * renderer.view_width, 0.88f * renderer.view_height, ALLEGRO_ALIGN_CENTRE, "WizBall is a arcade scrolling game,");
-      al_draw_text(renderer.main_font, al_map_rgb(241, 142, 0), 0.5f * renderer.view_width, 0.92f * renderer.view_height, ALLEGRO_ALIGN_CENTRE, "your task is to navigate around and shoot baddies.");
-      al_flip_display();
       al_wait_for_event(renderer.main_queue, &renderer.event);
       al_get_keyboard_state(&renderer.kb_state);
       if(renderer.event.type == ALLEGRO_EVENT_KEY_DOWN && al_key_down(&renderer.kb_state, ALLEGRO_KEY_ENTER)){
@@ -72,7 +79,7 @@ int request_name(void){
     /* Wait for player to finish typing in his/her username */
     while(1){
       al_clear_to_color(al_map_rgb(0, 0, 0));
-      al_draw_scaled_bitmap(background, 0, 0, 1600, 1200, 0, 0, renderer.view_width, renderer.view_height, 0);
+      al_draw_scaled_bitmap(background, 0, 0, al_get_bitmap_width(background), al_get_bitmap_height(background), 0, 0, renderer.view_width, renderer.view_height, 0);
       al_draw_text(renderer.main_font, al_map_rgb(241,142,0), 0.5f * renderer.view_width, 0.88f * renderer.view_height, ALLEGRO_ALIGN_CENTRE, "Please enter the name of player");
       if(single_player.name_length > 0){
         al_draw_text(renderer.main_font, al_map_rgb(241,142,0), 0.5f * renderer.view_width, 0.92f * renderer.view_height, ALLEGRO_ALIGN_CENTRE, &(single_player.player_name[0]));
