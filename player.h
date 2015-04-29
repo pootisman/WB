@@ -12,6 +12,7 @@
 typedef struct PLAYER{
   char skin[32];
   int health;
+  unsigned int score;
   unsigned char buffed;
   double radius;
   double mass;
@@ -49,6 +50,7 @@ static cpBool buff(cpArbiter *arbiter, cpSpace *space, void *data){
   }
 
   single_player.buffed++;
+  single_player.score += 20;
   bodyA = calloc(1, sizeof(cpBody *));
   bodyB = calloc(1, sizeof(cpBody *));
 

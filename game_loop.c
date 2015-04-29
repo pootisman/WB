@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <sys/time.h>
+#include "interscreen.h"
 #include "interfacer.h"
 #include "player.h"
 #include "bomb.h"
@@ -26,6 +27,7 @@ char playing_string[128] = {0};
 char health_string[32] = {0};
 char level_string[16] = {0};
 char shield_string[16] = {0};
+char score_string[16] = {0};
 
 unsigned int level_counter = 0;
 
@@ -79,7 +81,7 @@ void init_level(){
 
   add_entity_nophys(cpv(-renderer.view_width/2.0, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
   /* Add timer and a bar */
-  add_entity_bar(cpv(250, 15), renderer.view_width * 0.5, 10, &timeleft, RENDER_NUM_LAYERS - 1);
+  add_entity_bar(cpv(250, renderer.view_height - 15), renderer.view_width * 0.5, 10, &timeleft, RENDER_NUM_LAYERS - 1);
 
   /* Kludge master */
   temp_dyn = add_entity_mobile(cpv(40.0, 100.0), DEF_PLAYER_RADIUS, DEF_PLAYER_MASS, 0.0, 3, RENDER_NUM_LAYERS - 2);
@@ -94,6 +96,7 @@ void init_level(){
   add_entity_text_direct( cpv(10, 30), &(health_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 50), &(level_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 70), &(shield_string[0]), RENDER_NUM_LAYERS - 1);
+  add_entity_text_direct( cpv(10, 90), &(score_string[0]), RENDER_NUM_LAYERS - 1);
 }
 
 /* Generate a chunk of our level */
@@ -154,6 +157,21 @@ void track_player(){
   apply_trans_to_layer(&trans, 0);
 }
 
+void draw_until_escape(void){
+  while(1){
+    render_layers();
+    render_finalize_and_draw();
+    al_wait_for_event(renderer.main_queue, &renderer.event);
+    al_get_keyboard_state(&renderer.kb_state);
+    if(renderer.event.type == ALLEGRO_EVENT_KEY_DOWN && al_key_down(&renderer.kb_state, ALLEGRO_KEY_ESCAPE)){
+      return EXIT_SUCCESS;
+    }else if(renderer.event.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
+      return EXIT_FAILURE;
+    }
+
+  }
+}
+
 /* Loop functioon for our game, UGLY GOTO DETECTED! */
 int run_loop(){
 
@@ -170,6 +188,7 @@ int run_loop(){
   while(single_player.health > 0 && time_stop.tv_sec > time_now.tv_sec){
     gettimeofday(&time_now, NULL);
     sprintf(&(shield_string[0]), "Shields %d", single_player.buffed);
+    sprintf(&(score_string[0]), "Score %d", single_player.score);
 
     timeleft = (double)(time_stop.tv_sec - time_now.tv_sec)/(double)TIMEOUT;
 
@@ -242,6 +261,10 @@ int run_loop(){
       goto gamereset;
     }
   }
+
+  prepare_scores(single_player.score, single_player.player_name);
+  draw_until_escape();
+
 
   return EXIT_SUCCESS;
 }

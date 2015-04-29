@@ -12,7 +12,7 @@
 #define BOMB_SPLASH 16.0
 #define BOMB_MASS 32.0
 #define BOMB_ACTIVATION 256.0
-#define BOMB_IMPULSE 64.0
+#define BOMB_IMPULSE 256.0
 
 typedef struct BOMB{
   cpVect target;
@@ -64,6 +64,7 @@ static cpBool detonate(cpArbiter *arbiter, cpSpace *space, void *data){
   }else{
     single_player.health = 0;
   }
+  single_player.score += 40;
   remove_ent_phy_dyn(temp->bomb);
   remove_ent_phy_dyn(temp->bomb_activator);
 

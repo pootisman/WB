@@ -79,10 +79,6 @@ int init_render(unsigned short view_width, unsigned short view_height){
   renderer.view_width = (view_width == 0) ? 800 : view_width;
   renderer.view_height = (view_height == 0) ? 600 : view_height;
 
-  /* Enable multisampling */
-  al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
-  al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
-
   (void)fputs("[al_create_display>--", stdout);
   renderer.display = al_create_display(renderer.view_width, renderer.view_height);
   if(!renderer.display) {
@@ -108,7 +104,7 @@ int init_render(unsigned short view_width, unsigned short view_height){
 
   al_register_event_source(renderer.main_queue, renderer.display_source);
 
-  al_set_new_bitmap_flags(ALLEGRO_VIDEO_BITMAP | ALLEGRO_MIN_LINEAR | ALLEGRO_MIPMAP);
+  al_set_new_bitmap_flags(ALLEGRO_VIDEO_BITMAP);
   /* Prepare layers */
   for(; i < RENDER_NUM_LAYERS; i++){
     renderer.layers[i] = al_create_bitmap(renderer.view_width, renderer.view_height);
