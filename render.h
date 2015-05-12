@@ -26,16 +26,21 @@ typedef struct RENDER{
 
 extern RENDER renderer;
 
+/* Initialize allegro engine */
 int init_render(unsigned short view_width, unsigned short view_height);
 
+/* This adds transform to specific layer, the thing is that it does not cancel other transforms */
 void add_trans_to_layer(ALLEGRO_TRANSFORM *transform, unsigned char target_layer);
+/* This does cancel all previous transforms for specific layer */
 void apply_trans_to_layer(ALLEGRO_TRANSFORM *transform, unsigned char target_layer);
 
+/* Render each layer */
 void render_layers(void);
+/* Apply transforms to layers and merge them */
 void render_finalize_and_draw(void);
-
+/* Preload bitmap to handle it faster */
 int precache_bitmap(char *filename);
-
+/* Just stop Allegro */
 void stop_render(void);
 
 #endif

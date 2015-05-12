@@ -2,6 +2,7 @@
 #define _BOMB_
 #include <chipmunk/chipmunk.h>
 #include <stdio.h>
+#include "utlist.h"
 #include "game_phys.h"
 #include "interfacer.h"
 #include "render.h"
@@ -22,6 +23,8 @@ typedef struct BOMB{
   int health;
   struct BOMB *prev, *next;
 }BOMB;
+
+extern BOMB *bomb_list;
 
 BOMB *spawn_bomb(cpVect position);
 
@@ -67,6 +70,9 @@ static cpBool detonate(cpArbiter *arbiter, cpSpace *space, void *data){
   single_player.score += 40;
   remove_ent_phy_dyn(temp->bomb);
   remove_ent_phy_dyn(temp->bomb_activator);
+
+  DL_DELETE(bomb_list, temp);
+  (void)free(temp);
 
   return cpTrue;
 }

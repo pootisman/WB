@@ -58,3 +58,4 @@ void prepare_scores(unsigned int current_score, char *current_name){
 
   (void)fclose(scores_file);
 }
+
