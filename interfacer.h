@@ -115,6 +115,7 @@ int bind_level_seam(ENT_PHYS_STATIC *node);
 int bind_bomb_trigger(ENT_PHYS_DYNAMIC *node);
 int bind_bomb_kaboom(ENT_PHYS_DYNAMIC *node);
 int bind_powerup(ENT_PHYS_DYNAMIC *node);
+int bind_spPwup(ENT_PHYS_DYNAMIC *node);
 
 void remove_ent_phy_dyn(ENT_PHYS_DYNAMIC *target);
 

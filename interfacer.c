@@ -182,6 +182,19 @@ int bind_powerup(ENT_PHYS_DYNAMIC *node){
   return 0;
 }
 
+int bind_spPwup(ENT_PHYS_DYNAMIC *node){
+  if(node == NULL){
+    (void)puts("Level end needs a node");
+    return -2;
+  }
+
+  cpShapeSetCollisionType(node->shape, SPPOWERUP_COLLISION);
+
+  cpShapeSetSensor(node->shape, cpFalse);
+
+  return 0;
+}
+
 /* Add a string object to our list of rendered stuff (Copy data from pointer) */
 ENT_NOPHYS_TEXT *add_entity_text(cpVect position, char *string, unsigned char layer){
   ENT_NOPHYS_TEXT *new_node = NULL;

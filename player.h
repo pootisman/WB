@@ -9,6 +9,7 @@
 #define DEF_PLAYER_RADIUS 16.0
 #define DEF_PLAYER_MASS 32.0
 
+
 typedef struct PLAYER{
   char skin[32];
   int health;
@@ -18,6 +19,7 @@ typedef struct PLAYER{
   double mass;
   char player_name[MAX_NAME_LEN + 1];
   unsigned char name_length;
+  int spPwup;
   cpBody *body;
 }PLAYER;
 
@@ -41,9 +43,32 @@ static cpBool die_now(cpArbiter *arbiter, cpSpace *space, void *data){
   return cpTrue;
 }
 
+/* Hit special power-ups */
+static cpBool hit_spPwup(cpArbiter *arbiter, cpSpace *space, void *data){
+  cpBody **bodyA, **bodyB;
+
+  single_player.spPwup += 20;
+  single_player.score += 20;
+
+  bodyA = calloc(1, sizeof(cpBody *));
+  bodyB = calloc(1, sizeof(cpBody *));
+
+  cpArbiterGetBodies(arbiter, bodyA, bodyB);
+
+  if(single_player.body == *bodyA){
+    cpBodySetPosition(*bodyB, cpv(9999,99999));
+  }else{
+    cpBodySetPosition(*bodyA, cpv(9999,99999));
+  }
+
+
+  return cpTrue;
+}
+
 /* Player can withstand multiple hits with a shield pickup */
 static cpBool buff(cpArbiter *arbiter, cpSpace *space, void *data){
   cpBody **bodyA, **bodyB;
+
 
   if(single_player.buffed >= UCHAR_MAX){
     return cpTrue;

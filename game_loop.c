@@ -28,6 +28,7 @@ char health_string[32] = {0};
 char level_string[16] = {0};
 char shield_string[16] = {0};
 char score_string[16] = {0};
+char spPwup_string[16] = {0};
 
 unsigned int level_counter = 0;
 
@@ -63,6 +64,8 @@ void init_critical(){
   precache_bitmap("Ball.tga");
   precache_bitmap("Bomb.tga");
   precache_bitmap("PWUp.tga");
+  precache_bitmap("spPwup.tga");
+
 }
 
 /* Player, background, GUI and the whole level are initialized here */
@@ -80,6 +83,7 @@ void init_level(){
   add_entity_nophys(cpv(renderer.view_width/2.0 + renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
 
   add_entity_nophys(cpv(-renderer.view_width/2.0, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
+
   /* Add timer and a bar */
   add_entity_bar(cpv(250, renderer.view_height - 15), renderer.view_width * 0.5, 10, &timeleft, RENDER_NUM_LAYERS - 1);
 
@@ -97,6 +101,7 @@ void init_level(){
   add_entity_text_direct( cpv(10, 50), &(level_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 70), &(shield_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 90), &(score_string[0]), RENDER_NUM_LAYERS - 1);
+  add_entity_text_direct( cpv(10, 110), &(spPwup_string[0]), RENDER_NUM_LAYERS - 1);
 }
 
 /* Generate a chunk of our level */
@@ -110,6 +115,8 @@ void gen_chunk(){
         spawn_bomb(cpv(32+64*i,renderer.view_height - 48));
       }else if((double)rand()/(double)RAND_MAX > 0.5/level_counter){
         bind_powerup(add_entity_mobile(cpv(32+64*i,renderer.view_height - 48), BOMB_RADIUS, 1.0, 0.0, 5, RENDER_NUM_LAYERS - 2));
+      }else if((double)rand()/(double)RAND_MAX > 0.4/level_counter){
+        bind_spPwup(add_entity_mobile(cpv(32+64*i,renderer.view_height - 256), BOMB_RADIUS, 1.0, 0.0, 6, RENDER_NUM_LAYERS - 2));
       }
     }else{
       add_hole(cpv(32+ 64*i, renderer.view_height - 16));
@@ -189,6 +196,7 @@ int run_loop(){
     gettimeofday(&time_now, NULL);
     sprintf(&(shield_string[0]), "Shields %d", single_player.buffed);
     sprintf(&(score_string[0]), "Score %d", single_player.score);
+    sprintf(&(spPwup_string[0]), "Power %d", single_player.spPwup);
 
     timeleft = (double)(time_stop.tv_sec - time_now.tv_sec)/(double)TIMEOUT;
 
@@ -256,7 +264,7 @@ int run_loop(){
 
     cpSpaceStep(phys_space, DEF_TIME_STEP);
 
-    if(did_reach_teleport == cpTrue){
+    if(did_reach_teleport == cpTrue && single_player.spPwup >= 100){
       stop_interfacer();
       goto gamereset;
     }
