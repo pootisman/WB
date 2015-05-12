@@ -6,6 +6,8 @@
 /* What interfacer does:
  * Provides us with convenient way to add entities to the game
  * We can add player, NPC, platform, trigger and text to the game field
+ * We also store entities we want to delete after each step since we can't
+ * do it on the fly (Chipmunk does not approve)
  */
 BITMAP_PLAIN *plaint_bitmap_list = NULL;
 unsigned int bitmap_counter = 0;
@@ -117,6 +119,7 @@ int bind_trigger(ENT_PHYS_STATIC *node, cpBool collision){
   return 0;
 }
 
+/* Bind a node to the deathwall */
 int bind_dead(ENT_PHYS_STATIC *node){
   if(node == NULL){
     (void)puts("Deathwall without node, not gonna happen!");
@@ -130,6 +133,7 @@ int bind_dead(ENT_PHYS_STATIC *node){
   return 0;
 }
 
+/* Bind a node to the portal */
 int bind_level_seam(ENT_PHYS_STATIC *node){
   if(node == NULL){
     (void)puts("Level end needs a node");
@@ -143,6 +147,7 @@ int bind_level_seam(ENT_PHYS_STATIC *node){
   return 0;
 }
 
+/* We use this to create bombs */
 int bind_bomb_trigger(ENT_PHYS_DYNAMIC *node){
   if(node == NULL){
     (void)puts("Level end needs a node");
@@ -156,6 +161,7 @@ int bind_bomb_trigger(ENT_PHYS_DYNAMIC *node){
   return 0;
 }
 
+/* The busyness part of the bomb */
 int bind_bomb_kaboom(ENT_PHYS_DYNAMIC *node){
   if(node == NULL){
     (void)puts("Level end needs a node");
@@ -169,6 +175,7 @@ int bind_bomb_kaboom(ENT_PHYS_DYNAMIC *node){
   return 0;
 }
 
+/* Shiled that will save us from explosives */
 int bind_powerup(ENT_PHYS_DYNAMIC *node){
   if(node == NULL){
     (void)puts("Level end needs a node");
@@ -176,6 +183,20 @@ int bind_powerup(ENT_PHYS_DYNAMIC *node){
   }
 
   cpShapeSetCollisionType(node->shape, POWERUP_COLLISION);
+
+  cpShapeSetSensor(node->shape, cpFalse);
+
+  return 0;
+}
+
+/* Shiled that will save us from explosives */
+int bind_white_hole(ENT_PHYS_DYNAMIC *node){
+  if(node == NULL){
+    (void)puts("Level end needs a node");
+    return -2;
+  }
+
+  cpShapeSetCollisionType(node->shape, WHITE_COLLISION);
 
   cpShapeSetSensor(node->shape, cpFalse);
 
@@ -258,6 +279,8 @@ ENT_NOPHYS_PROGBAR *add_entity_bar(cpVect position, double length, double height
   return new_node;
 }
 
+/* Four functions below move the pointers to the list
+ * that will be freed later */
 void remove_ent_phy_dyn(ENT_PHYS_DYNAMIC *target){
   DL_DELETE(dynamic_phys_body_list, target);
   DL_APPEND(dynamic_phys_body_delete, target);
@@ -270,7 +293,7 @@ void remove_ent_phy_sta(ENT_PHYS_STATIC *target){
   static_phys_body_delete_count++;
 }
 
-void remove_ent_nophy_dyn(ENT_PHYS_DYNAMIC *target){
+void remove_ent_nophy_dyn(ENT_NOPHYS_DYNAMIC *target){
   DL_DELETE(dynamic_nophys_body_list, target);
   DL_APPEND(dynamic_nophys_body_delete, target);
   dynamic_nophys_body_delete_count++;
@@ -282,6 +305,7 @@ void remove_ent_nophy_sta(ENT_NOPHYS_STATIC *target){
   static_nophys_body_delete_count++;
 }
 
+/* Free all resources that are no longer needed */
 void free_entities(){
   ENT_PHYS_DYNAMIC *temp_phys_dynamic = NULL;
   ENT_PHYS_STATIC *temp_phys_static = NULL;

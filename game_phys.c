@@ -13,7 +13,7 @@ cpFloat player_mass, player_radius, player_moment;
 cpCollisionHandler *gap_of_death = NULL, *amp = NULL, *levels_end = NULL, *deathwall = NULL, *bomb_activ = NULL, *bomb_kaboom = NULL;
 cpSpaceHash *space_hash = NULL;
 
-/* Prepare space for our game */
+/* Prepare chipmunk space for our game */
 int init_phys(){
   (void)fputs("[cpSpaceNew>--", stdout);
 
@@ -57,12 +57,12 @@ int init_phys(){
   return 0;
 }
 
-/* Set gravity direction */
+/* Set gravity direction, well just a wrapper =P */
 void set_gravity(cpVect new_gravity){
   cpSpaceSetGravity(phys_space, new_gravity);
 }
 
-/* Free all physics that we currently have loaded */
+/* Free physics space that we currently have loaded */
 void stop_phys(){
   (void)puts("Shutting down physics.");
   cpSpaceFree(phys_space);

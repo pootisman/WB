@@ -28,6 +28,8 @@ char health_string[32] = {0};
 char level_string[16] = {0};
 char shield_string[16] = {0};
 char score_string[16] = {0};
+unsigned int number_of_lives = 1;
+unsigned int score_lives = 0;
 
 unsigned int level_counter = 0;
 
@@ -65,42 +67,10 @@ void init_critical(){
   precache_bitmap("PWUp.tga");
 }
 
-/* Player, background, GUI and the whole level are initialized here */
-void init_level(){
-  ENT_PHYS_DYNAMIC *temp_dyn;
-  ENT_PHYS_STATIC *temp_static;
-  /* Add ground */
-  gen_chunk();
-  /* Add background
-     NOTE TO SELF: Kludge powers activate! */
-  add_entity_nophys(cpv(renderer.view_width/2.0 + 2.0*renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
-  add_entity_nophys(cpv(-renderer.view_width/2.0 - renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
-
-  add_entity_nophys(cpv(renderer.view_width/2.0, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
-  add_entity_nophys(cpv(renderer.view_width/2.0 + renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
-
-  add_entity_nophys(cpv(-renderer.view_width/2.0, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
-  /* Add timer and a bar */
-  add_entity_bar(cpv(250, renderer.view_height - 15), renderer.view_width * 0.5, 10, &timeleft, RENDER_NUM_LAYERS - 1);
-
-  /* Kludge master */
-  temp_dyn = add_entity_mobile(cpv(40.0, 100.0), DEF_PLAYER_RADIUS, DEF_PLAYER_MASS, 0.0, 3, RENDER_NUM_LAYERS - 2);
-  spawn_player(temp_dyn->body);
-
-  /* Create a teleport to next level */
-  temp_static = add_entity_static(cpv(renderer.view_width * 5, 0), renderer.view_width, renderer.view_height, 0.0, 0, RENDER_NUM_LAYERS - 2);
-  bind_level_seam(temp_static);
-
-  sprintf(&(playing_string[0]), "Player %s is in the game.", single_player.player_name); 
-  add_entity_text_direct( cpv(10, 10), &(playing_string[0]), RENDER_NUM_LAYERS - 1);
-  add_entity_text_direct( cpv(10, 30), &(health_string[0]), RENDER_NUM_LAYERS - 1);
-  add_entity_text_direct( cpv(10, 50), &(level_string[0]), RENDER_NUM_LAYERS - 1);
-  add_entity_text_direct( cpv(10, 70), &(shield_string[0]), RENDER_NUM_LAYERS - 1);
-  add_entity_text_direct( cpv(10, 90), &(score_string[0]), RENDER_NUM_LAYERS - 1);
-}
-
-/* Generate a chunk of our level */
-void gen_chunk(){
+/* Generate a chunk of our level
+ * Inlined since we use it only here.
+ */
+inline void gen_chunk(void){
   int i;
 
   for(i = -150; i < 150; i++){
@@ -128,6 +98,42 @@ void gen_chunk(){
 
   }
 }
+
+/* Player, background, GUI and the whole level are initialized here */
+void init_level(){
+  ENT_PHYS_DYNAMIC *temp_dyn;
+  ENT_PHYS_STATIC *temp_static;
+  /* Add ground */
+  gen_chunk();
+  /* Add background
+     NOTE TO SELF: Kludge powers activate! */
+  add_entity_nophys(cpv(renderer.view_width/2.0 + 2.0*renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
+  add_entity_nophys(cpv(-renderer.view_width/2.0 - renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
+
+  add_entity_nophys(cpv(renderer.view_width/2.0, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
+  add_entity_nophys(cpv(renderer.view_width/2.0 + renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
+
+  add_entity_nophys(cpv(-renderer.view_width/2.0, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
+  /* Add timer and a bar */
+  add_entity_bar(cpv(20, renderer.view_height - 15), renderer.view_width - 40, 10, &timeleft, RENDER_NUM_LAYERS - 1);
+
+  /* Kludge master */
+  temp_dyn = add_entity_mobile(cpv(40.0, 100.0), DEF_PLAYER_RADIUS, DEF_PLAYER_MASS, 0.0, 3, RENDER_NUM_LAYERS - 2);
+  spawn_player(temp_dyn->body);
+
+  /* Create a teleport to next level */
+  temp_static = add_entity_static(cpv(renderer.view_width * 5 + renderer.view_width/2.0, 0), renderer.view_width, renderer.view_height, 0.0, 0, RENDER_NUM_LAYERS - 2);
+  bind_level_seam(temp_static);
+
+  sprintf(&(playing_string[0]), "Player %s is in the game.", single_player.player_name); 
+  add_entity_text_direct( cpv(10, 10), &(playing_string[0]), RENDER_NUM_LAYERS - 1);
+  add_entity_text_direct( cpv(10, 30), &(health_string[0]), RENDER_NUM_LAYERS - 1);
+  add_entity_text_direct( cpv(10, 50), &(level_string[0]), RENDER_NUM_LAYERS - 1);
+  add_entity_text_direct( cpv(10, 70), &(shield_string[0]), RENDER_NUM_LAYERS - 1);
+  add_entity_text_direct( cpv(10, 90), &(score_string[0]), RENDER_NUM_LAYERS - 1);
+}
+
+
 
 /* Keep generating new transformation in order to keep our player on screen */
 void track_player(){
@@ -157,24 +163,27 @@ void track_player(){
   apply_trans_to_layer(&trans, 0);
 }
 
-void draw_until_escape(void){
+/* Redraw the screen until given key is pressed
+   Inline since we use it only here and do not
+   need pointers of it */
+inline void draw_until_key(int switch_key){
   while(1){
     render_layers();
     render_finalize_and_draw();
     al_wait_for_event(renderer.main_queue, &renderer.event);
     al_get_keyboard_state(&renderer.kb_state);
-    if(renderer.event.type == ALLEGRO_EVENT_KEY_DOWN && al_key_down(&renderer.kb_state, ALLEGRO_KEY_ESCAPE)){
-      return EXIT_SUCCESS;
+    if(renderer.event.type == ALLEGRO_EVENT_KEY_DOWN && al_key_down(&renderer.kb_state, switch_key)){
+      return;
     }else if(renderer.event.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
-      return EXIT_FAILURE;
+      return;
     }
 
   }
 }
 
-/* Loop functioon for our game, UGLY GOTO DETECTED! */
+/* Loop functioon for our game, UGLY GOTO DETECTED!
+   The programmer will burn in HELL!!! */
 int run_loop(){
-
   gamereset:
   level_counter++;
   did_reach_teleport = cpFalse;
@@ -186,7 +195,14 @@ int run_loop(){
   sprintf(&(level_string[0]), "Level %d", level_counter);
 
   while(single_player.health > 0 && time_stop.tv_sec > time_now.tv_sec){
+    score_lives = single_player.score;
+    if(score_lives != 0){
+      number_of_lives += score_lives / DEF_PLAYER_BONUS_STEP;
+      score_lives %= DEF_PLAYER_BONUS_STEP;
+    }
+    /* Initialize all needed variables, strings for display */
     gettimeofday(&time_now, NULL);
+
     sprintf(&(shield_string[0]), "Shields %d", single_player.buffed);
     sprintf(&(score_string[0]), "Score %d", single_player.score);
 
@@ -200,6 +216,7 @@ int run_loop(){
       break;
     }
 
+    /* This section is resposible for vertical thrusters */
     al_get_keyboard_state(&renderer.kb_state);
     if(al_key_down(&renderer.kb_state, ALLEGRO_KEY_DOWN)){
       cpBodyApplyImpulseAtWorldPoint(single_player.body, cpv(0.0, 150.0), cpv(0.0, 0.0));
@@ -209,6 +226,7 @@ int run_loop(){
       (void)puts("Up key pressed, applying impulse.");
     }
 
+    /* This one controls steering thrusters */
     if(al_key_down(&renderer.kb_state, ALLEGRO_KEY_LEFT)){
       cpBodyApplyImpulseAtWorldPoint(single_player.body, cpv(-150.0, 0.0), cpv(0.0, 0.0));
       (void)puts("Left key pressed, applying impulse.");
@@ -217,6 +235,7 @@ int run_loop(){
       (void)puts("Right key pressed, applying impulse.");
     }
 
+    /* Here we can switch gravity with WASD buttons */
     if(renderer.event.type == ALLEGRO_EVENT_KEY_DOWN){
       switch(renderer.event.keyboard.keycode){
         case(ALLEGRO_KEY_W):{
@@ -262,8 +281,14 @@ int run_loop(){
     }
   }
 
+  --number_of_lives;
+  if(number_of_lives > 0){
+    single_player.health = 255;
+    goto gamereset;
+  }
+  /* Loop is over, show scores and save new score (or don't) */
   prepare_scores(single_player.score, single_player.player_name);
-  draw_until_escape();
+  draw_until_key(ALLEGRO_KEY_ESCAPE);
 
 
   return EXIT_SUCCESS;

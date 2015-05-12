@@ -3,8 +3,9 @@
 
 #include <chipmunk/chipmunk.h>
 
-#define DEF_TIME_STEP 50.0/1000.0 /* Time step for physics and Allegro engine */
+#define DEF_TIME_STEP 20.0/1000.0 /* Time step for physics and Allegro engine */
 
+/* Default gravity, set to something more interesting */
 #define GRAVITY 9.8
 
 /* 32 bit defines for collision types */
@@ -16,12 +17,14 @@
 #define DEATHWALL_COLLISION  0xF00F
 #define BOMB_ACTIVATOR_COLLISION 0xF0F0
 #define BOMB_KABOOM_COLLISION 0xF0FF
+#define WHITE_COLLISION 0xFF00
 
 extern cpSpace *phys_space;
 extern cpVect gravity;
 extern cpShape *bed;
 extern cpCollisionHandler *gap_of_death;
 
+/* Prepares the physics for us */
 int init_phys(void);
 void set_gravity(cpVect new_gravity);
 void stop_phys(void);

@@ -8,6 +8,7 @@
 
 #define DEF_PLAYER_RADIUS 16.0
 #define DEF_PLAYER_MASS 32.0
+#define DEF_PLAYER_BONUS_STEP 1000
 
 typedef struct PLAYER{
   char skin[32];
@@ -18,6 +19,8 @@ typedef struct PLAYER{
   double mass;
   char player_name[MAX_NAME_LEN + 1];
   unsigned char name_length;
+  struct timeval hole_cooldown;
+  cpBool has_white_hole;
   cpBody *body;
 }PLAYER;
 
