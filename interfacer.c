@@ -2,6 +2,7 @@
 #include "pre_menu.h"
 #include "interfacer.h"
 #include "utlist.h"
+#include "bomb.h"
 
 /* What interfacer does:
  * Provides us with convenient way to add entities to the game
@@ -40,6 +41,8 @@ unsigned int nophys_progress_count = 0;
 
 ENT_PHYS_TRIGGER *phys_trigger_list = NULL;
 unsigned int phys_trigger_count = 0;
+
+extern BOMB *bomb_list;
 
 /* Add a new movable entity to our game, inform chipmunk and allocate bitmap */
 ENT_PHYS_DYNAMIC *add_entity_mobile(cpVect position, double radius, double mass, double angle, unsigned int bitmap, unsigned char layer){
@@ -183,20 +186,36 @@ int bind_powerup(ENT_PHYS_DYNAMIC *node){
   }
 
   cpShapeSetCollisionType(node->shape, POWERUP_COLLISION);
+  cpBodySetUserData(node->body, node);
 
   cpShapeSetSensor(node->shape, cpFalse);
 
   return 0;
 }
 
-/* Shiled that will save us from explosives */
+/* Shieled that will save us from explosives */
 int bind_white_hole(ENT_PHYS_DYNAMIC *node){
   if(node == NULL){
-    (void)puts("Level end needs a node");
+    (void)puts("White hole needs a node");
     return -2;
   }
 
   cpShapeSetCollisionType(node->shape, WHITE_COLLISION);
+  cpBodySetUserData(node->body, node);
+
+  cpShapeSetSensor(node->shape, cpFalse);
+
+  return 0;
+}
+
+int bind_spPwup(ENT_PHYS_DYNAMIC *node){
+  if(node == NULL){
+    (void)puts("Special powerup needs a node");
+    return -2;
+  }
+
+  cpShapeSetCollisionType(node->shape, SPPOWERUP_COLLISION);
+  cpBodySetUserData(node->body, node);
 
   cpShapeSetSensor(node->shape, cpFalse);
 
@@ -352,14 +371,16 @@ void stop_interfacer(void){
   ENT_NOPHYS_PROGBAR *temp_nophys_progbar = NULL;
   BITMAP_PLAIN *temp_bitmap = NULL;
 
+  BOMB *temp_bomb = NULL;
+
   DL_FOREACH(dynamic_phys_body_list, temp_phys_dynamic){
     DL_DELETE(dynamic_phys_body_list, temp_phys_dynamic);
     cpSpaceRemoveBody(phys_space, temp_phys_dynamic->body);
     cpSpaceRemoveShape(phys_space, temp_phys_dynamic->shape);
     free(temp_phys_dynamic);
   }
-  dynamic_phys_body_list = NULL;
 
+  dynamic_phys_body_list = NULL;
 
   DL_FOREACH(static_phys_body_list, temp_phys_static){
     DL_DELETE(static_phys_body_list, temp_phys_static);
@@ -392,8 +413,14 @@ void stop_interfacer(void){
   }
   nophys_progress_list = NULL;
 
+  DL_FOREACH(bomb_list, temp_bomb){
+    DL_DELETE(bomb_list, temp_bomb);
+  }
+  bomb_list = NULL;
+
   DL_FOREACH(plaint_bitmap_list, temp_bitmap){
     DL_DELETE(plaint_bitmap_list, temp_bitmap);
+    free(temp_bitmap);
   }
   plaint_bitmap_list = NULL;
 }

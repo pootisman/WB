@@ -17,6 +17,7 @@
 #define TRACKING_THRESHOLD 0.6
 #define TRACKING_MULTIPLIER 1.5
 #define TRACKING_BASE 8
+#define LEVEL_LENGTH_MULTIPLIER 2
 
 /* Time per level */
 #define TIMEOUT 120 /* seconds */
@@ -30,6 +31,7 @@ char shield_string[16] = {0};
 char score_string[16] = {0};
 unsigned int number_of_lives = 1;
 unsigned int score_lives = 0;
+char spPwup_string[16] = {0};
 
 unsigned int level_counter = 0;
 
@@ -65,21 +67,51 @@ void init_critical(){
   precache_bitmap("Ball.tga");
   precache_bitmap("Bomb.tga");
   precache_bitmap("PWUp.tga");
+  precache_bitmap("Key.tga");
+  precache_bitmap("Teleport.tga");
+  precache_bitmap("Vertical.tga");
+}
+
+/*
+ * Spawn isolation platforms of the level.
+ */
+void isolate_level(cpVect portal_position){
+  int i = 0, j = 0;
+  ENT_PHYS_STATIC *temp_static = NULL;
+
+  for(i = 32; i < renderer.view_height+32; i+=64){
+    if(i < (portal_position.y - 64) || i > (portal_position.y + 64)){
+      add_entity_static(cpv(portal_position.x, i), 64, 64, 0, 8, RENDER_NUM_LAYERS - 2);
+    }else{
+      /* Create a teleport to next level */
+      add_entity_static(cpv(portal_position.x+64, i), 64, 64, 0, 8, RENDER_NUM_LAYERS - 2);
+      add_entity_static(cpv(portal_position.x+64, i+64), 64, 64, 0, 8, RENDER_NUM_LAYERS - 2);
+      temp_static = add_entity_static(cpv(portal_position.x, i + 32), 64, 128, 0.0, 7, RENDER_NUM_LAYERS - 2);
+      i+=64;
+      bind_level_seam(temp_static);
+    }
+  }
+
+  for(i = 32; i < renderer.view_height; i+=64){
+    add_entity_static(cpv(-portal_position.x + 32, i), 64, 64, 0, 8, RENDER_NUM_LAYERS - 2);
+  }
 }
 
 /* Generate a chunk of our level
  * Inlined since we use it only here.
  */
-inline void gen_chunk(void){
+inline void gen_chunk(int start, int end){
   int i;
 
-  for(i = -150; i < 150; i++){
+  for(i = start; i < end; i++){
     if((double)rand()/(double)RAND_MAX > 0.5){
       add_platform(cpv(32+64*i, renderer.view_height - 16), 0.0);
-      if((double)rand()/(double)RAND_MAX > 0.9/level_counter){
+      if((double)rand()/(double)RAND_MAX > 0.99/(level_counter * 0.5)){
         spawn_bomb(cpv(32+64*i,renderer.view_height - 48));
       }else if((double)rand()/(double)RAND_MAX > 0.5/level_counter){
         bind_powerup(add_entity_mobile(cpv(32+64*i,renderer.view_height - 48), BOMB_RADIUS, 1.0, 0.0, 5, RENDER_NUM_LAYERS - 2));
+      }else if((double)rand()/(double)RAND_MAX > 0.4/level_counter){
+        bind_spPwup(add_entity_mobile(cpv(32+64*i,renderer.view_height - 256), BOMB_RADIUS, 1.0, 0.0, 6, RENDER_NUM_LAYERS - 2));
       }
     }else{
       add_hole(cpv(32+ 64*i, renderer.view_height - 16));
@@ -102,28 +134,23 @@ inline void gen_chunk(void){
 /* Player, background, GUI and the whole level are initialized here */
 void init_level(){
   ENT_PHYS_DYNAMIC *temp_dyn;
-  ENT_PHYS_STATIC *temp_static;
+  int i = 0;
+
   /* Add ground */
-  gen_chunk();
+  gen_chunk(-(renderer.view_width/64)*level_counter * LEVEL_LENGTH_MULTIPLIER, (renderer.view_width/64)*level_counter * LEVEL_LENGTH_MULTIPLIER);
   /* Add background
      NOTE TO SELF: Kludge powers activate! */
-  add_entity_nophys(cpv(renderer.view_width/2.0 + 2.0*renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
-  add_entity_nophys(cpv(-renderer.view_width/2.0 - renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
+  for(i = -level_counter * LEVEL_LENGTH_MULTIPLIER; i <= (int)level_counter * LEVEL_LENGTH_MULTIPLIER;add_entity_nophys(cpv(renderer.view_width/2.0 + i*renderer.view_width, 0), renderer.view_width, renderer.view_height, 1, 0), i++);
 
-  add_entity_nophys(cpv(renderer.view_width/2.0, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
-  add_entity_nophys(cpv(renderer.view_width/2.0 + renderer.view_width, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
-
-  add_entity_nophys(cpv(-renderer.view_width/2.0, 0), renderer.view_width + renderer.view_width * 0.1, renderer.view_height + renderer.view_height * 0.1, 1, 0);
   /* Add timer and a bar */
   add_entity_bar(cpv(20, renderer.view_height - 15), renderer.view_width - 40, 10, &timeleft, RENDER_NUM_LAYERS - 1);
 
   /* Kludge master */
-  temp_dyn = add_entity_mobile(cpv(40.0, 100.0), DEF_PLAYER_RADIUS, DEF_PLAYER_MASS, 0.0, 3, RENDER_NUM_LAYERS - 2);
+  temp_dyn = add_entity_mobile(cpv(renderer.view_width/2.0, renderer.view_height/2.0), DEF_PLAYER_RADIUS, DEF_PLAYER_MASS, 0.0, 3, RENDER_NUM_LAYERS - 2);
   spawn_player(temp_dyn->body);
 
-  /* Create a teleport to next level */
-  temp_static = add_entity_static(cpv(renderer.view_width * 5 + renderer.view_width/2.0, 0), renderer.view_width, renderer.view_height, 0.0, 0, RENDER_NUM_LAYERS - 2);
-  bind_level_seam(temp_static);
+  /* And isolate the later parts */
+  isolate_level(cpv(renderer.view_width * level_counter * LEVEL_LENGTH_MULTIPLIER + 64, renderer.view_height/2.0));
 
   sprintf(&(playing_string[0]), "Player %s is in the game.", single_player.player_name); 
   add_entity_text_direct( cpv(10, 10), &(playing_string[0]), RENDER_NUM_LAYERS - 1);
@@ -131,9 +158,8 @@ void init_level(){
   add_entity_text_direct( cpv(10, 50), &(level_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 70), &(shield_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 90), &(score_string[0]), RENDER_NUM_LAYERS - 1);
+  add_entity_text_direct( cpv(10, 110), &(spPwup_string[0]), RENDER_NUM_LAYERS - 1);
 }
-
-
 
 /* Keep generating new transformation in order to keep our player on screen */
 void track_player(){
@@ -205,6 +231,7 @@ int run_loop(){
 
     sprintf(&(shield_string[0]), "Shields %d", single_player.buffed);
     sprintf(&(score_string[0]), "Score %d", single_player.score);
+    sprintf(&(spPwup_string[0]), "Power %d", single_player.spPwup);
 
     timeleft = (double)(time_stop.tv_sec - time_now.tv_sec)/(double)TIMEOUT;
 

@@ -66,7 +66,7 @@ int init_render(unsigned short view_width, unsigned short view_height){
 
   /* Load the font */
   (void)fputs("[al_load_ttf_font>--", stdout);
-  renderer.main_font = al_load_ttf_font("/usr/share/fonts/corefonts/verdana.ttf", 16, 0);
+  renderer.main_font = al_load_ttf_font("fonts/DroidSans.ttf", 16, 0);
   if(!renderer.main_font){
     (void)puts("--<FAILED]");
     al_unregister_event_source(renderer.main_queue, renderer.keyboard_source );

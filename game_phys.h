@@ -18,6 +18,7 @@
 #define BOMB_ACTIVATOR_COLLISION 0xF0F0
 #define BOMB_KABOOM_COLLISION 0xF0FF
 #define WHITE_COLLISION 0xFF00
+#define SPPOWERUP_COLLISION 0xFF0F
 
 extern cpSpace *phys_space;
 extern cpVect gravity;

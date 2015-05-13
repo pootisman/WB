@@ -18,5 +18,6 @@ PLAYER *spawn_player(cpBody *player_body){
   single_player.mass = DEF_PLAYER_MASS;
   single_player.body = player_body;
   single_player.health = 255;
+  single_player.spPwup = 0;
   return &single_player;
 }

@@ -10,6 +10,7 @@
 #define DEF_PLAYER_MASS 32.0
 #define DEF_PLAYER_BONUS_STEP 1000
 
+
 typedef struct PLAYER{
   char skin[32];
   int health;
@@ -21,6 +22,7 @@ typedef struct PLAYER{
   unsigned char name_length;
   struct timeval hole_cooldown;
   cpBool has_white_hole;
+  int spPwup;
   cpBody *body;
 }PLAYER;
 
@@ -34,7 +36,10 @@ static cpBool get_hurt(cpArbiter *arbiter, cpSpace *space, void *data){
 
 /* We reached the end the level, tell game_loop to regenerate all stuff */
 static cpBool reach_teleport(cpArbiter *arbiter, cpSpace *space, void *data){
-  did_reach_teleport = cpTrue;
+  extern unsigned int level_counter;
+  if(single_player.spPwup >= 20 * level_counter){
+    did_reach_teleport = cpTrue;
+  }
   return cpTrue;
 }
 
@@ -44,9 +49,31 @@ static cpBool die_now(cpArbiter *arbiter, cpSpace *space, void *data){
   return cpTrue;
 }
 
+/* Hit special power-ups */
+static cpBool hit_spPwup(cpArbiter *arbiter, cpSpace *space, void *data){
+  cpBody **bodyA, **bodyB;
+
+  single_player.spPwup += 20;
+  single_player.score += 20;
+
+  bodyA = calloc(1, sizeof(cpBody *));
+  bodyB = calloc(1, sizeof(cpBody *));
+
+  cpArbiterGetBodies(arbiter, bodyA, bodyB);
+
+  if(single_player.body == *bodyA){
+    remove_ent_phy_dyn(cpBodyGetUserData(*bodyB));
+  }else{
+    remove_ent_phy_dyn(cpBodyGetUserData(*bodyA));
+  }
+
+  return cpTrue;
+}
+
 /* Player can withstand multiple hits with a shield pickup */
 static cpBool buff(cpArbiter *arbiter, cpSpace *space, void *data){
   cpBody **bodyA, **bodyB;
+
 
   if(single_player.buffed >= UCHAR_MAX){
     return cpTrue;
@@ -60,11 +87,11 @@ static cpBool buff(cpArbiter *arbiter, cpSpace *space, void *data){
   /* Remove pickup from game */
   cpArbiterGetBodies(arbiter, bodyA, bodyB);
 
-  /* SHHIIIIHHS */
+  /* NO SHHIIIIHHS */
   if(single_player.body == *bodyA){
-    cpBodySetPosition(*bodyB, cpv(9999,99999));
+    remove_ent_phy_dyn(cpBodyGetUserData(*bodyB));
   }else{
-    cpBodySetPosition(*bodyA, cpv(9999,99999));
+    remove_ent_phy_dyn(cpBodyGetUserData(*bodyA));
   }
 
   return cpTrue;
