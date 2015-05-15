@@ -33,7 +33,9 @@ static cpBool approach_target(cpArbiter *arbiter, cpSpace *space, void *data){
   cpBody **bodyA = calloc(1, sizeof(cpBody *)), **bodyB = calloc(1, sizeof(cpBody *));
   cpArbiterGetBodies(arbiter, bodyA, bodyB);
 
+#ifdef DEBUG
   (void)puts("Bomb active.");
+#endif
 
   if(single_player.body == *bodyA){
     cpBodyApplyImpulseAtWorldPoint(*bodyB, pointer_vect_mul(cpBodyGetPosition(*bodyA), cpBodyGetPosition(*bodyB), BOMB_IMPULSE), cpv(0.0, 0.0));
@@ -52,7 +54,9 @@ static cpBool detonate(cpArbiter *arbiter, cpSpace *space, void *data){
   cpBody **bodyA = calloc(1, sizeof(cpBody *)), **bodyB = calloc(1, sizeof(cpBody *));
   BOMB *temp = NULL;
 
+#ifdef DEBUG
   (void)puts("Time to go BOOM!");
+#endif
 
   cpArbiterGetBodies(arbiter, bodyA, bodyB);
 

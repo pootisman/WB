@@ -150,7 +150,7 @@ void init_level(){
   spawn_player(temp_dyn->body);
 
   /* And isolate the later parts */
-  isolate_level(cpv(renderer.view_width * level_counter * LEVEL_LENGTH_MULTIPLIER + 64, renderer.view_height/2.0));
+  isolate_level(cpv(renderer.view_width * level_counter * LEVEL_LENGTH_MULTIPLIER - 16, renderer.view_height/2.0));
 
   sprintf(&(playing_string[0]), "Player %s is in the game.", single_player.player_name); 
   add_entity_text_direct( cpv(10, 10), &(playing_string[0]), RENDER_NUM_LAYERS - 1);
@@ -172,10 +172,14 @@ void track_player(){
     /* Now we have to recompute slide speed and coordinates */
     if(player_position.x <= TRACKING_THRESHOLD * renderer.view_width + display_x_offset){
       display_x_offset -= pow(TRACKING_BASE, fabs((player_position.x - renderer.view_width/2.0 - display_x_offset)/((1.0 - TRACKING_THRESHOLD) * renderer.view_width)) * TRACKING_MULTIPLIER);
+#ifdef DEBUG
       (void)printf("Decreasing horisontal offset to %f\n", display_x_offset);
+#endif
     }else{
       display_x_offset += pow(TRACKING_BASE, fabs((player_position.x - renderer.view_width/2.0 - display_x_offset)/((1.0 - TRACKING_THRESHOLD) * renderer.view_width)) * TRACKING_MULTIPLIER);
+#ifdef DEBUG
       (void)printf("Increasing horisontal offset to %f\n", display_x_offset);
+#endif
     }
   }
 
@@ -239,7 +243,9 @@ int run_loop(){
     al_wait_for_event_until(renderer.main_queue, &renderer.event, &renderer.timeout);
 
     if(renderer.event.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
+#ifdef DEBUG
       (void)puts("User decided to quit the game.");
+#endif
       break;
     }
 
@@ -247,19 +253,27 @@ int run_loop(){
     al_get_keyboard_state(&renderer.kb_state);
     if(al_key_down(&renderer.kb_state, ALLEGRO_KEY_DOWN)){
       cpBodyApplyImpulseAtWorldPoint(single_player.body, cpv(0.0, 150.0), cpv(0.0, 0.0));
+#ifdef DEBUG
       (void)puts("Down key pressed, applying impulse.");
+#endif
     }else if(al_key_down(&renderer.kb_state, ALLEGRO_KEY_UP)){
       cpBodyApplyImpulseAtWorldPoint(single_player.body, cpv(0.0, -150.0), cpv(0.0, 0.0));
+#ifdef DEBUG
       (void)puts("Up key pressed, applying impulse.");
+#endif
     }
 
     /* This one controls steering thrusters */
     if(al_key_down(&renderer.kb_state, ALLEGRO_KEY_LEFT)){
       cpBodyApplyImpulseAtWorldPoint(single_player.body, cpv(-150.0, 0.0), cpv(0.0, 0.0));
+#ifdef DEBUG
       (void)puts("Left key pressed, applying impulse.");
+#endif
     }else if(al_key_down(&renderer.kb_state, ALLEGRO_KEY_RIGHT)){
       cpBodyApplyImpulseAtWorldPoint(single_player.body, cpv(150.0, 0.0), cpv(0.0, 0.0));
+#ifdef DEBUG
       (void)puts("Right key pressed, applying impulse.");
+#endif
     }
 
     /* Here we can switch gravity with WASD buttons */
@@ -289,6 +303,10 @@ int run_loop(){
           cpSpaceSetGravity(phys_space, gravity);
           break;
         }
+        case(ALLEGRO_KEY_1):{
+          single_player.hole_cooldown.tv_sec = 6;
+          break;
+        }
       }
     }
 
@@ -298,6 +316,7 @@ int run_loop(){
     render_layers();
     render_finalize_and_draw();
 
+    /* Delete entities that are no longer used */
     free_entities();
 
     cpSpaceStep(phys_space, DEF_TIME_STEP);
@@ -311,6 +330,7 @@ int run_loop(){
   --number_of_lives;
   if(number_of_lives > 0){
     single_player.health = 255;
+    stop_interfacer();
     goto gamereset;
   }
   /* Loop is over, show scores and save new score (or don't) */

@@ -8,4 +8,4 @@ set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-Ofast")
 
 add_executable("${PROJECT_NAME}_dbg" ${SRC_LIST})
 target_link_libraries("${PROJECT_NAME}_dbg" allegro allegro_image allegro_dialog allegro_ttf allegro_font allegro_primitives chipmunk m)
-set_target_properties("${PROJECT_NAME}_dbg" PROPERTIES COMPILE_FLAGS "-g")
+set_target_properties("${PROJECT_NAME}_dbg" PROPERTIES COMPILE_FLAGS "-g -DDEBUG")

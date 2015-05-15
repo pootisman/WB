@@ -6,7 +6,7 @@
 
 int main(int argc, char **argv){
 
-  if(0 != init_render(640, 480)){
+  if(0 != init_render(1024, 768)){
     return EXIT_FAILURE;
   }
 

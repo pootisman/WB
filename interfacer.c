@@ -107,7 +107,9 @@ ENT_PHYS_STATIC *add_entity_static(cpVect position, double width, double height,
 int bind_trigger(ENT_PHYS_STATIC *node, cpBool collision){
 
   if(node == NULL){
+#ifdef DEBUG
     (void)puts("Trigger without node, not gonna happen!");
+#endif
     return -2;
   }
 
@@ -125,7 +127,9 @@ int bind_trigger(ENT_PHYS_STATIC *node, cpBool collision){
 /* Bind a node to the deathwall */
 int bind_dead(ENT_PHYS_STATIC *node){
   if(node == NULL){
+#ifdef DEBUG
     (void)puts("Deathwall without node, not gonna happen!");
+#endif
     return -2;
   }
 
@@ -139,7 +143,9 @@ int bind_dead(ENT_PHYS_STATIC *node){
 /* Bind a node to the portal */
 int bind_level_seam(ENT_PHYS_STATIC *node){
   if(node == NULL){
+#ifdef DEBUG
     (void)puts("Level end needs a node");
+#endif
     return -2;
   }
 
@@ -153,7 +159,9 @@ int bind_level_seam(ENT_PHYS_STATIC *node){
 /* We use this to create bombs */
 int bind_bomb_trigger(ENT_PHYS_DYNAMIC *node){
   if(node == NULL){
+#ifdef DEBUG
     (void)puts("Level end needs a node");
+#endif
     return -2;
   }
 
@@ -167,7 +175,9 @@ int bind_bomb_trigger(ENT_PHYS_DYNAMIC *node){
 /* The busyness part of the bomb */
 int bind_bomb_kaboom(ENT_PHYS_DYNAMIC *node){
   if(node == NULL){
+#ifdef DEBUG
     (void)puts("Level end needs a node");
+#endif
     return -2;
   }
 
@@ -181,7 +191,9 @@ int bind_bomb_kaboom(ENT_PHYS_DYNAMIC *node){
 /* Shiled that will save us from explosives */
 int bind_powerup(ENT_PHYS_DYNAMIC *node){
   if(node == NULL){
+#ifdef DEBUG
     (void)puts("Level end needs a node");
+#endif
     return -2;
   }
 
