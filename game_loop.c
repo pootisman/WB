@@ -23,12 +23,13 @@
 #define TIMEOUT 120 /* seconds */
 
 struct timeval time_now, time_stop;
-double timeleft = 0.0;
+double timeleft = 0.0, chargeleft = 1.0;
 char playing_string[128] = {0};
 char health_string[32] = {0};
 char level_string[16] = {0};
 char shield_string[16] = {0};
 char score_string[16] = {0};
+char laser_string[24] = {0};
 unsigned int number_of_lives = 1;
 unsigned int score_lives = 0;
 char spPwup_string[16] = {0};
@@ -70,6 +71,7 @@ void init_critical(){
   precache_bitmap("Key.tga");
   precache_bitmap("Teleport.tga");
   precache_bitmap("Vertical.tga");
+  precache_bitmap("Laser.tga");
 }
 
 /*
@@ -112,6 +114,8 @@ inline void gen_chunk(int start, int end){
         bind_powerup(add_entity_mobile(cpv(32+64*i,renderer.view_height - 48), BOMB_RADIUS, 1.0, 0.0, 5, RENDER_NUM_LAYERS - 2));
       }else if((double)rand()/(double)RAND_MAX > 0.4/level_counter){
         bind_spPwup(add_entity_mobile(cpv(32+64*i,renderer.view_height - 256), BOMB_RADIUS, 1.0, 0.0, 6, RENDER_NUM_LAYERS - 2));
+      }else if((double)rand()/(double)RAND_MAX > 0.4/level_counter){
+        bind_laser(add_entity_mobile(cpv(32+64*i,renderer.view_height - 256), BOMB_RADIUS, 1.0, 0.0, 9, RENDER_NUM_LAYERS - 2));
       }
     }else{
       add_hole(cpv(32+ 64*i, renderer.view_height - 16));
@@ -134,6 +138,7 @@ inline void gen_chunk(int start, int end){
 /* Player, background, GUI and the whole level are initialized here */
 void init_level(){
   ENT_PHYS_DYNAMIC *temp_dyn;
+  cpConstraint *constraint;
   int i = 0;
 
   /* Add ground */
@@ -144,10 +149,15 @@ void init_level(){
 
   /* Add timer and a bar */
   add_entity_bar(cpv(20, renderer.view_height - 15), renderer.view_width - 40, 10, &timeleft, RENDER_NUM_LAYERS - 1);
+  add_entity_bar(cpv(20, renderer.view_height - 65), renderer.view_width - 40, 2, &chargeleft, RENDER_NUM_LAYERS - 1);
 
   /* Kludge master */
   temp_dyn = add_entity_mobile(cpv(renderer.view_width/2.0, renderer.view_height/2.0), DEF_PLAYER_RADIUS, DEF_PLAYER_MASS, 0.0, 3, RENDER_NUM_LAYERS - 2);
   spawn_player(temp_dyn->body);
+  temp_dyn = add_entity_mobile(cpv(renderer.view_width/2.0, renderer.view_height/2.0), DEF_PLAYER_RADIUS*10, 1, 0.0, 0, 0);
+  constraint = cpSpaceAddConstraint( phys_space, cpPinJointNew(single_player.body, temp_dyn->body, cpv(0.0, 0.0), cpv(0.0, 0.0)));
+  bind_range(temp_dyn);
+  single_player.weapon_range = temp_dyn;
 
   /* And isolate the later parts */
   isolate_level(cpv(renderer.view_width * level_counter * LEVEL_LENGTH_MULTIPLIER - 16, renderer.view_height/2.0));
@@ -159,6 +169,7 @@ void init_level(){
   add_entity_text_direct( cpv(10, 70), &(shield_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 90), &(score_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 110), &(spPwup_string[0]), RENDER_NUM_LAYERS - 1);
+  add_entity_text_direct( cpv(10, 130), &(laser_string[0]), RENDER_NUM_LAYERS - 1);
 }
 
 /* Keep generating new transformation in order to keep our player on screen */
@@ -236,9 +247,11 @@ int run_loop(){
     sprintf(&(shield_string[0]), "Shields %d", single_player.buffed);
     sprintf(&(score_string[0]), "Score %d", single_player.score);
     sprintf(&(spPwup_string[0]), "Power %d", single_player.spPwup);
+    sprintf(&(laser_string[0]), "Laser %s", single_player.laser ? ("Enabled") : ("Disabled"));
+    sprintf(&(laser_string[0]), "White hole %s", single_player.laser ? ("Enabled") : ("Disabled"));
 
     timeleft = (double)(time_stop.tv_sec - time_now.tv_sec)/(double)TIMEOUT;
-
+    chargeleft = (double)single_player.charge/(double)UCHAR_MAX;
     al_clear_to_color(al_map_rgb(0,0,0));
     al_wait_for_event_until(renderer.main_queue, &renderer.event, &renderer.timeout);
 
@@ -304,10 +317,22 @@ int run_loop(){
           break;
         }
         case(ALLEGRO_KEY_1):{
-          single_player.hole_cooldown.tv_sec = 6;
+          if(single_player.has_laser){
+            single_player.laser = !single_player.laser;
+          }
+          break;
+        }
+        case(ALLEGRO_KEY_2):{
+          if(single_player.has_white_hole){
+            single_player.grav = !single_player.grav;
+          }
           break;
         }
       }
+    }
+
+    if(single_player.charge < UCHAR_MAX){
+      single_player.charge++;
     }
 
     track_player();

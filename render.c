@@ -138,6 +138,7 @@ inline void render_layers(void){
   ENT_NOPHYS_DYNAMIC *temp_nophys_dynamic = NULL;
   ENT_NOPHYS_TEXT *temp_text = NULL;
   ENT_NOPHYS_PROGBAR *temp_prog = NULL;
+  ENT_NOPHYS_LINE *temp_line = NULL;
 
   DL_FOREACH(dynamic_phys_body_list, temp_phys_dynamic){
     if(temp_phys_dynamic->bitmap){
@@ -186,6 +187,11 @@ inline void render_layers(void){
       al_draw_rectangle(temp_prog->position_x - 1, temp_prog->position_y - 2, temp_prog->position_x + temp_prog->length + 2, temp_prog->position_y + temp_prog->height + 1, al_map_rgb(241, 142, 0),1);
       al_draw_filled_rectangle(temp_prog->position_x, temp_prog->position_y, temp_prog->position_x + *(temp_prog->monitored_value) * temp_prog->length, temp_prog->position_y + temp_prog->height, al_map_rgb(241, 142, 0));
     }
+  }
+
+  DL_FOREACH(nophys_line_list, temp_line){
+    al_set_target_bitmap(renderer.layers[temp_line->layer]);
+    al_draw_line(temp_line->p1.x, temp_line->p1.y, temp_line->p2.x, temp_line->p2.y, temp_line->color, 1);
   }
 }
 

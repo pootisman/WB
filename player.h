@@ -15,15 +15,16 @@ typedef struct PLAYER{
   char skin[32];
   int health;
   unsigned int score;
-  unsigned char buffed;
+  unsigned char buffed, charge, laser, grav;
   double radius;
   double mass;
   char player_name[MAX_NAME_LEN + 1];
   unsigned char name_length;
   struct timeval hole_cooldown;
-  cpBool has_white_hole;
+  cpBool has_white_hole, has_laser;
   int spPwup;
   cpBody *body;
+  ENT_PHYS_DYNAMIC *weapon_range;
 }PLAYER;
 
 extern PLAYER single_player;
@@ -93,6 +94,48 @@ static cpBool buff(cpArbiter *arbiter, cpSpace *space, void *data){
   }else{
     remove_ent_phy_dyn(cpBodyGetUserData(*bodyA));
   }
+
+  return cpTrue;
+}
+
+/* Player can pickup a laser */
+static cpBool pick_laser(cpArbiter *arbiter, cpSpace *space, void *data){
+  cpBody **bodyA, **bodyB;
+
+  bodyA = calloc(1, sizeof(cpBody *));
+  bodyB = calloc(1, sizeof(cpBody *));
+
+  cpArbiterGetBodies(arbiter, bodyA, bodyB);
+
+  if(single_player.body == *bodyA){
+    remove_ent_phy_dyn(cpBodyGetUserData(*bodyB));
+  }else{
+    remove_ent_phy_dyn(cpBodyGetUserData(*bodyA));
+  }
+
+  single_player.has_laser = cpTrue;
+  single_player.charge = UCHAR_MAX;
+
+  return cpTrue;
+}
+
+/* Player can pickup a laser */
+static cpBool shoot_laser(cpArbiter *arbiter, cpSpace *space, void *data){
+  cpBody **bodyA, **bodyB;
+
+  bodyA = calloc(1, sizeof(cpBody *));
+  bodyB = calloc(1, sizeof(cpBody *));
+
+  cpArbiterGetBodies(arbiter, bodyA, bodyB);
+
+  if(single_player.weapon_range->body == *bodyA){
+    remove_ent_phy_dyn(cpBodyGetUserData(*bodyB));
+  }else{
+/*    remove_ent_phy_dyn(cpBodyGetUserData(*bodyA));*/
+  }
+
+  single_player.has_laser = cpTrue;
+  single_player.charge = UCHAR_MAX;
 
   return cpTrue;
 }

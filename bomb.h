@@ -77,6 +77,45 @@ static cpBool detonate(cpArbiter *arbiter, cpSpace *space, void *data){
 
   DL_DELETE(bomb_list, temp);
   (void)free(temp);
+  (void)free(bodyA);
+  (void)free(bodyB);
+
+  return cpTrue;
+}
+
+/* Get hit by a laser */
+static cpBool hit_by_laser(cpArbiter *arbiter, cpSpace *space, void *data){
+  cpBody **bodyA = calloc(1, sizeof(cpBody *)), **bodyB = calloc(1, sizeof(cpBody *));
+  BOMB *temp = NULL;
+
+#ifdef DEBUG
+  (void)puts("Time to go BOOM!");
+#endif
+
+  cpArbiterGetBodies(arbiter, bodyA, bodyB);
+
+  if(cpBodyGetUserData(*bodyA) == NULL){
+    temp = cpBodyGetUserData(*bodyB);
+  }else{
+    temp = cpBodyGetUserData(*bodyA);
+  }
+
+  if(single_player.charge - 5 > 0 && single_player.has_laser == cpTrue && single_player.laser != 0){
+    add_entity_line(cpBodyGetPosition(*bodyA), cpBodyGetPosition(*bodyB), RENDER_NUM_LAYERS - 2);
+    if(temp->health - 10 <= 0){
+      single_player.score += 40;
+      remove_ent_phy_dyn(temp->bomb);
+      remove_ent_phy_dyn(temp->bomb_activator);
+
+      DL_DELETE(bomb_list, temp);
+      (void)free(temp);
+      (void)free(bodyA);
+      (void)free(bodyB);
+    }else{
+      temp->health -= 10;
+    }
+    single_player.charge -= 2;
+  }
 
   return cpTrue;
 }

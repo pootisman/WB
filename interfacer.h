@@ -69,6 +69,14 @@ typedef struct ENT_NOPHYS_PROGBAR{
   struct ENT_NOPHYS_PROGBAR *prev, *next;
 }ENT_NOPHYS_PROGBAR;
 
+/* Simple line */
+typedef struct ENT_NOPHYS_LINE{
+  cpVect p1, p2;
+  ALLEGRO_COLOR color;
+  struct ENT_NOPHYS_LINE *prev, *next;
+  unsigned char layer;
+}ENT_NOPHYS_LINE;
+
 /* Trigger with physical collisions (frying pan) */
 typedef struct ENT_PHYS_TRIGGER{
   cpShape *shape;
@@ -103,19 +111,24 @@ extern unsigned int nophys_progress_count;
 extern ENT_PHYS_TRIGGER *phys_trigger_list;
 extern unsigned int phys_trigger_count;
 
+extern ENT_NOPHYS_LINE *nophys_line_list;
+extern unsigned int nophys_line_count;
+
 ENT_PHYS_DYNAMIC *add_entity_mobile(cpVect position, double radius, double mass, double angle, unsigned int bitmap, unsigned char layer);
 ENT_PHYS_STATIC *add_entity_static(cpVect position, double width, double height, double angle, unsigned int bitmap, unsigned char layer);
 ENT_NOPHYS_TEXT *add_entity_text(cpVect position, char *string, unsigned char layer);
 ENT_NOPHYS_TEXT *add_entity_text_direct(cpVect position, char *string, unsigned char layer);
 ENT_NOPHYS_STATIC *add_entity_nophys(cpVect position, double width, double height, unsigned int bitmap, unsigned char layer);
 ENT_NOPHYS_PROGBAR *add_entity_bar(cpVect position, double length, double height, double *monitored_value, unsigned char layer);
+ENT_NOPHYS_LINE *add_entity_line(cpVect point1, cpVect point2, unsigned char layer);
 int bind_trigger(ENT_PHYS_STATIC *node, cpBool collision);
 int bind_dead(ENT_PHYS_STATIC *node);
 int bind_level_seam(ENT_PHYS_STATIC *node);
 int bind_bomb_trigger(ENT_PHYS_DYNAMIC *node);
 int bind_bomb_kaboom(ENT_PHYS_DYNAMIC *node);
 int bind_powerup(ENT_PHYS_DYNAMIC *node);
-int bind_white_hole(ENT_PHYS_DYNAMIC *node);
+int bind_laser(ENT_PHYS_DYNAMIC *node);
+int bind_range(ENT_PHYS_DYNAMIC *node);
 int bind_spPwup(ENT_PHYS_DYNAMIC *node);
 
 void remove_ent_phy_dyn(ENT_PHYS_DYNAMIC *target);

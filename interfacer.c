@@ -42,6 +42,9 @@ unsigned int nophys_progress_count = 0;
 ENT_PHYS_TRIGGER *phys_trigger_list = NULL;
 unsigned int phys_trigger_count = 0;
 
+ENT_NOPHYS_LINE *nophys_line_list;
+unsigned int nophys_line_count;
+
 extern BOMB *bomb_list;
 
 /* Add a new movable entity to our game, inform chipmunk and allocate bitmap */
@@ -99,6 +102,19 @@ ENT_PHYS_STATIC *add_entity_static(cpVect position, double width, double height,
     for(i = 1; i < bitmap; temp = temp->next, ++i);
     new_node->bitmap = temp->bitmap;
   }
+
+  return new_node;
+}
+
+ENT_NOPHYS_LINE *add_entity_line(cpVect point1, cpVect point2, unsigned char layer){
+  ENT_NOPHYS_LINE *new_node = calloc(1, sizeof(ENT_NOPHYS_LINE));
+
+  DL_APPEND(nophys_line_list, new_node);
+  nophys_line_count++;
+  new_node->p1 = point1;
+  new_node->p2 = point2;
+  new_node->color = al_map_rgb(0,255,0);
+  new_node->layer = layer;
 
   return new_node;
 }
@@ -205,14 +221,14 @@ int bind_powerup(ENT_PHYS_DYNAMIC *node){
   return 0;
 }
 
-/* Shieled that will save us from explosives */
-int bind_white_hole(ENT_PHYS_DYNAMIC *node){
+/* Laser turret pickup */
+int bind_laser(ENT_PHYS_DYNAMIC *node){
   if(node == NULL){
     (void)puts("White hole needs a node");
     return -2;
   }
 
-  cpShapeSetCollisionType(node->shape, WHITE_COLLISION);
+  cpShapeSetCollisionType(node->shape, LASER_PICKUP_COLLISION);
   cpBodySetUserData(node->body, node);
 
   cpShapeSetSensor(node->shape, cpFalse);
@@ -220,6 +236,21 @@ int bind_white_hole(ENT_PHYS_DYNAMIC *node){
   return 0;
 }
 
+/* Laser turret range */
+int bind_range(ENT_PHYS_DYNAMIC *node){
+  if(node == NULL){
+    (void)puts("White hole needs a node");
+    return -2;
+  }
+
+  cpShapeSetCollisionType(node->shape, LASER_COLLISION);
+
+  cpShapeSetSensor(node->shape, cpTrue);
+
+  return 0;
+}
+
+/* Special powerup for completing level */
 int bind_spPwup(ENT_PHYS_DYNAMIC *node){
   if(node == NULL){
     (void)puts("Special powerup needs a node");
@@ -342,6 +373,7 @@ void free_entities(){
   ENT_PHYS_STATIC *temp_phys_static = NULL;
   ENT_NOPHYS_DYNAMIC *temp_nophys_dynamic = NULL;
   ENT_NOPHYS_STATIC *temp_nophys_static = NULL;
+  ENT_NOPHYS_LINE *temp_line = NULL;
 
   DL_FOREACH(dynamic_phys_body_delete, temp_phys_dynamic){
     DL_DELETE(dynamic_phys_body_delete, temp_phys_dynamic);
@@ -370,6 +402,11 @@ void free_entities(){
     cpSpaceRemoveShape(phys_space, temp_phys_static->shape);
     free(temp_phys_static);
   }
+
+  DL_FOREACH(nophys_line_list, temp_line){
+    DL_DELETE(nophys_line_list, temp_line);
+    free(temp_line);
+  }
 }
 
 /* Free all resources */
@@ -382,6 +419,7 @@ void stop_interfacer(void){
   ENT_NOPHYS_TEXT *temp_nophys_text = NULL;
   ENT_NOPHYS_PROGBAR *temp_nophys_progbar = NULL;
   BITMAP_PLAIN *temp_bitmap = NULL;
+  ENT_NOPHYS_LINE *temp_line = NULL;
 
   BOMB *temp_bomb = NULL;
 
@@ -434,5 +472,11 @@ void stop_interfacer(void){
     DL_DELETE(plaint_bitmap_list, temp_bitmap);
     free(temp_bitmap);
   }
+
+  DL_FOREACH(nophys_line_list, temp_line){
+    DL_DELETE(nophys_line_list, temp_line);
+    free(temp_line);
+  }
+
   plaint_bitmap_list = NULL;
 }

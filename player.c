@@ -19,5 +19,8 @@ PLAYER *spawn_player(cpBody *player_body){
   single_player.body = player_body;
   single_player.health = 255;
   single_player.spPwup = 0;
+  single_player.charge = 255;
+  single_player.laser = 0;
+  single_player.grav = 0;
   return &single_player;
 }
