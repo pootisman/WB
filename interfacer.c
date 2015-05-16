@@ -224,11 +224,26 @@ int bind_powerup(ENT_PHYS_DYNAMIC *node){
 /* Laser turret pickup */
 int bind_laser(ENT_PHYS_DYNAMIC *node){
   if(node == NULL){
-    (void)puts("White hole needs a node");
+    (void)puts("Laser pickup needs a node");
     return -2;
   }
 
   cpShapeSetCollisionType(node->shape, LASER_PICKUP_COLLISION);
+  cpBodySetUserData(node->body, node);
+
+  cpShapeSetSensor(node->shape, cpFalse);
+
+  return 0;
+}
+
+/* Laser turret pickup */
+int bind_white_hole(ENT_PHYS_DYNAMIC *node){
+  if(node == NULL){
+    (void)puts("White hole pickup needs a node");
+    return -2;
+  }
+
+  cpShapeSetCollisionType(node->shape, WHITE_PICKUP_COLLISION);
   cpBodySetUserData(node->body, node);
 
   cpShapeSetSensor(node->shape, cpFalse);

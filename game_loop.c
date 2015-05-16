@@ -30,6 +30,7 @@ char level_string[16] = {0};
 char shield_string[16] = {0};
 char score_string[16] = {0};
 char laser_string[24] = {0};
+char whole_string[24] = {0};
 unsigned int number_of_lives = 1;
 unsigned int score_lives = 0;
 char spPwup_string[16] = {0};
@@ -65,13 +66,18 @@ void init_critical(){
   display_x_offset = 0.0;
   precache_bitmap("Background_space.tga");
   precache_bitmap("Platform.tga");
+
   precache_bitmap("Ball.tga");
   precache_bitmap("Bomb.tga");
+
   precache_bitmap("PWUp.tga");
   precache_bitmap("Key.tga");
+
   precache_bitmap("Teleport.tga");
   precache_bitmap("Vertical.tga");
+
   precache_bitmap("Laser.tga");
+  precache_bitmap("White_hole.tga");
 }
 
 /*
@@ -108,7 +114,7 @@ inline void gen_chunk(int start, int end){
   for(i = start; i < end; i++){
     if((double)rand()/(double)RAND_MAX > 0.5){
       add_platform(cpv(32+64*i, renderer.view_height - 16), 0.0);
-      if((double)rand()/(double)RAND_MAX > 0.99/(level_counter * 0.5)){
+      if((double)rand()/(double)RAND_MAX > pow(0.99,level_counter)){
         spawn_bomb(cpv(32+64*i,renderer.view_height - 48));
       }else if((double)rand()/(double)RAND_MAX > 0.5/level_counter){
         bind_powerup(add_entity_mobile(cpv(32+64*i,renderer.view_height - 48), BOMB_RADIUS, 1.0, 0.0, 5, RENDER_NUM_LAYERS - 2));
@@ -116,6 +122,8 @@ inline void gen_chunk(int start, int end){
         bind_spPwup(add_entity_mobile(cpv(32+64*i,renderer.view_height - 256), BOMB_RADIUS, 1.0, 0.0, 6, RENDER_NUM_LAYERS - 2));
       }else if((double)rand()/(double)RAND_MAX > 0.4/level_counter){
         bind_laser(add_entity_mobile(cpv(32+64*i,renderer.view_height - 256), BOMB_RADIUS, 1.0, 0.0, 9, RENDER_NUM_LAYERS - 2));
+      }else if((double)rand()/(double)RAND_MAX > 0.4/level_counter){
+        bind_white_hole(add_entity_mobile(cpv(32+64*i,renderer.view_height - 256), BOMB_RADIUS, 1.0, 0.0, 10, RENDER_NUM_LAYERS - 2));
       }
     }else{
       add_hole(cpv(32+ 64*i, renderer.view_height - 16));
@@ -170,6 +178,7 @@ void init_level(){
   add_entity_text_direct( cpv(10, 90), &(score_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 110), &(spPwup_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 130), &(laser_string[0]), RENDER_NUM_LAYERS - 1);
+  add_entity_text_direct( cpv(10, 150), &(whole_string[0]), RENDER_NUM_LAYERS - 1);
 }
 
 /* Keep generating new transformation in order to keep our player on screen */
@@ -248,7 +257,7 @@ int run_loop(){
     sprintf(&(score_string[0]), "Score %d", single_player.score);
     sprintf(&(spPwup_string[0]), "Power %d", single_player.spPwup);
     sprintf(&(laser_string[0]), "Laser %s", single_player.laser ? ("Enabled") : ("Disabled"));
-    sprintf(&(laser_string[0]), "White hole %s", single_player.laser ? ("Enabled") : ("Disabled"));
+    sprintf(&(whole_string[0]), "White hole %s", single_player.grav ? ("Enabled") : ("Disabled"));
 
     timeleft = (double)(time_stop.tv_sec - time_now.tv_sec)/(double)TIMEOUT;
     chargeleft = (double)single_player.charge/(double)UCHAR_MAX;

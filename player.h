@@ -120,7 +120,7 @@ static cpBool pick_laser(cpArbiter *arbiter, cpSpace *space, void *data){
 }
 
 /* Player can pickup a laser */
-static cpBool shoot_laser(cpArbiter *arbiter, cpSpace *space, void *data){
+static cpBool pick_whole(cpArbiter *arbiter, cpSpace *space, void *data){
   cpBody **bodyA, **bodyB;
 
   bodyA = calloc(1, sizeof(cpBody *));
@@ -128,13 +128,13 @@ static cpBool shoot_laser(cpArbiter *arbiter, cpSpace *space, void *data){
 
   cpArbiterGetBodies(arbiter, bodyA, bodyB);
 
-  if(single_player.weapon_range->body == *bodyA){
+  if(single_player.body == *bodyA){
     remove_ent_phy_dyn(cpBodyGetUserData(*bodyB));
   }else{
-/*    remove_ent_phy_dyn(cpBodyGetUserData(*bodyA));*/
+    remove_ent_phy_dyn(cpBodyGetUserData(*bodyA));
   }
 
-  single_player.has_laser = cpTrue;
+  single_player.has_white_hole = cpTrue;
   single_player.charge = UCHAR_MAX;
 
   return cpTrue;

@@ -100,6 +100,12 @@ static cpBool hit_by_laser(cpArbiter *arbiter, cpSpace *space, void *data){
     temp = cpBodyGetUserData(*bodyA);
   }
 
+  if(single_player.charge - 5 > 0 && single_player.has_white_hole == cpTrue && single_player.grav != 0){
+    cpBodyApplyImpulseAtWorldPoint(temp->bomb->body, cpv(-100*(cpBodyGetPosition(single_player.body).x - cpBodyGetPosition(temp->bomb->body).x), -100*(cpBodyGetPosition(single_player.body).y - cpBodyGetPosition(temp->bomb->body).y)), cpv(0.0, 0.0));
+    single_player.charge -= 20;
+  }
+
+
   if(single_player.charge - 5 > 0 && single_player.has_laser == cpTrue && single_player.laser != 0){
     add_entity_line(cpBodyGetPosition(*bodyA), cpBodyGetPosition(*bodyB), RENDER_NUM_LAYERS - 2);
     if(temp->health - 10 <= 0){
@@ -115,6 +121,31 @@ static cpBool hit_by_laser(cpArbiter *arbiter, cpSpace *space, void *data){
       temp->health -= 10;
     }
     single_player.charge -= 2;
+  }
+
+  return cpTrue;
+}
+
+/* Get hit by a laser */
+static cpBool hit_by_grav(cpArbiter *arbiter, cpSpace *space, void *data){
+  cpBody **bodyA = calloc(1, sizeof(cpBody *)), **bodyB = calloc(1, sizeof(cpBody *));
+  BOMB *temp = NULL;
+
+#ifdef DEBUG
+  (void)puts("Time to go BOOM!");
+#endif
+
+  cpArbiterGetBodies(arbiter, bodyA, bodyB);
+
+  if(cpBodyGetUserData(*bodyA) == NULL){
+    temp = cpBodyGetUserData(*bodyB);
+  }else{
+    temp = cpBodyGetUserData(*bodyA);
+  }
+
+  if(single_player.charge - 5 > 0 && single_player.has_white_hole == cpTrue && single_player.grav != 0){
+    cpBodyApplyImpulseAtWorldPoint(temp->bomb->body, cpv(cpBodyGetPosition(single_player.body).x - cpBodyGetPosition(temp->bomb->body).x, cpBodyGetPosition(single_player.body).y - cpBodyGetPosition(temp->bomb->body).y), cpv(0.0, 0.0));
+    single_player.charge -= 20;
   }
 
   return cpTrue;
