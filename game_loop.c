@@ -64,20 +64,20 @@ inline void add_level_teleport(cpVect position){
  */
 void init_critical(){
   display_x_offset = 0.0;
-  precache_bitmap("Background_space.tga");
-  precache_bitmap("Platform.tga");
+  precache_bitmap("Images/Background_space.tga");
+  precache_bitmap("Images/Platform.tga");
 
-  precache_bitmap("Ball.tga");
-  precache_bitmap("Bomb.tga");
+  precache_bitmap("Images/Ball.tga");
+  precache_bitmap("Images/Bomb.tga");
 
-  precache_bitmap("PWUp.tga");
-  precache_bitmap("Key.tga");
+  precache_bitmap("Images/PWUp.tga");
+  precache_bitmap("Images/Key.tga");
 
-  precache_bitmap("Teleport.tga");
-  precache_bitmap("Vertical.tga");
+  precache_bitmap("Images/Teleport.tga");
+  precache_bitmap("Images/Vertical.tga");
 
-  precache_bitmap("Laser.tga");
-  precache_bitmap("White_hole.tga");
+  precache_bitmap("Images/Laser.tga");
+  precache_bitmap("Images/White_hole.tga");
 }
 
 /*

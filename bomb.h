@@ -89,7 +89,7 @@ static cpBool hit_by_laser(cpArbiter *arbiter, cpSpace *space, void *data){
   BOMB *temp = NULL;
 
 #ifdef DEBUG
-  (void)puts("Time to go BOOM!");
+  (void)puts("BOMB: Ouch");
 #endif
 
   cpArbiterGetBodies(arbiter, bodyA, bodyB);
@@ -120,7 +120,7 @@ static cpBool hit_by_laser(cpArbiter *arbiter, cpSpace *space, void *data){
     }else{
       temp->health -= 10;
     }
-    single_player.charge -= 2;
+    single_player.charge -= 5;
   }
 
   return cpTrue;
