@@ -31,8 +31,11 @@ char shield_string[16] = {0};
 char score_string[16] = {0};
 char laser_string[24] = {0};
 char whole_string[24] = {0};
+char lives_string[24] = {0};
+
 unsigned int number_of_lives = 1;
 unsigned int score_lives = 0;
+
 char spPwup_string[16] = {0};
 
 unsigned int level_counter = 0;
@@ -62,9 +65,13 @@ inline void add_level_teleport(cpVect position){
 /* Load critical resources, such as background image,
  * platform textures and player ball.
  */
-void init_critical(){
+void init_critical(unsigned int level){
+  char background_file[32] = {0};
   display_x_offset = 0.0;
-  precache_bitmap("Images/Background_space.tga");
+
+  sprintf(&(background_file[0]), "Images/Background_%d.tga", level % 4);
+
+  precache_bitmap(&(background_file[0]));
   precache_bitmap("Images/Platform.tga");
 
   precache_bitmap("Images/Ball.tga");
@@ -179,6 +186,7 @@ void init_level(){
   add_entity_text_direct( cpv(10, 110), &(spPwup_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 130), &(laser_string[0]), RENDER_NUM_LAYERS - 1);
   add_entity_text_direct( cpv(10, 150), &(whole_string[0]), RENDER_NUM_LAYERS - 1);
+  add_entity_text_direct( cpv(10, 170), &(lives_string[0]), RENDER_NUM_LAYERS - 1);
 }
 
 /* Keep generating new transformation in order to keep our player on screen */
@@ -237,7 +245,7 @@ int run_loop(){
   gamereset:
   level_counter++;
   did_reach_teleport = cpFalse;
-  init_critical();
+  init_critical(level_counter);
   init_level();
 
   gettimeofday(&time_now, NULL);
@@ -245,10 +253,9 @@ int run_loop(){
   sprintf(&(level_string[0]), "Level %d", level_counter);
 
   while(single_player.health > 0 && time_stop.tv_sec > time_now.tv_sec){
-    score_lives = single_player.score;
-    if(score_lives != 0){
-      number_of_lives += score_lives / DEF_PLAYER_BONUS_STEP;
-      score_lives %= DEF_PLAYER_BONUS_STEP;
+    if(single_player.score_lives != 0){
+      number_of_lives += single_player.score_lives / DEF_PLAYER_BONUS_STEP;
+      single_player.score_lives %= DEF_PLAYER_BONUS_STEP;
     }
     /* Initialize all needed variables, strings for display */
     gettimeofday(&time_now, NULL);
@@ -258,6 +265,7 @@ int run_loop(){
     sprintf(&(spPwup_string[0]), "Power %d", single_player.spPwup);
     sprintf(&(laser_string[0]), "Laser %s", single_player.laser ? ("Enabled") : ("Disabled"));
     sprintf(&(whole_string[0]), "White hole %s", single_player.grav ? ("Enabled") : ("Disabled"));
+    sprintf(&(lives_string[0]), "Lives %d", number_of_lives);
 
     timeleft = (double)(time_stop.tv_sec - time_now.tv_sec)/(double)TIMEOUT;
     chargeleft = (double)single_player.charge/(double)UCHAR_MAX;

@@ -8,13 +8,13 @@
 
 #define DEF_PLAYER_RADIUS 16.0
 #define DEF_PLAYER_MASS 32.0
-#define DEF_PLAYER_BONUS_STEP 1000
+#define DEF_PLAYER_BONUS_STEP 200
 
 
 typedef struct PLAYER{
   char skin[32];
   int health;
-  unsigned int score;
+  unsigned int score, score_lives;
   unsigned char buffed, charge, laser, grav;
   double radius;
   double mass;
@@ -56,6 +56,8 @@ static cpBool hit_spPwup(cpArbiter *arbiter, cpSpace *space, void *data){
 
   single_player.spPwup += 20;
   single_player.score += 20;
+  single_player.score_lives += 40;
+
 
   bodyA = calloc(1, sizeof(cpBody *));
   bodyB = calloc(1, sizeof(cpBody *));
@@ -82,6 +84,7 @@ static cpBool buff(cpArbiter *arbiter, cpSpace *space, void *data){
 
   single_player.buffed++;
   single_player.score += 20;
+  single_player.score_lives += 40;
   bodyA = calloc(1, sizeof(cpBody *));
   bodyB = calloc(1, sizeof(cpBody *));
 

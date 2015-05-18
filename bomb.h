@@ -72,6 +72,7 @@ static cpBool detonate(cpArbiter *arbiter, cpSpace *space, void *data){
     single_player.health = 0;
   }
   single_player.score += 40;
+  single_player.score_lives += 40;
   remove_ent_phy_dyn(temp->bomb);
   remove_ent_phy_dyn(temp->bomb_activator);
 
@@ -110,6 +111,7 @@ static cpBool hit_by_laser(cpArbiter *arbiter, cpSpace *space, void *data){
     add_entity_line(cpBodyGetPosition(*bodyA), cpBodyGetPosition(*bodyB), RENDER_NUM_LAYERS - 2);
     if(temp->health - 10 <= 0){
       single_player.score += 40;
+      single_player.score_lives += 40;
       remove_ent_phy_dyn(temp->bomb);
       remove_ent_phy_dyn(temp->bomb_activator);
 

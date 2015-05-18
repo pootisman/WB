@@ -11,7 +11,7 @@
 
 /* Display a simple greeting */
 int show_greeting(void){
-  ALLEGRO_BITMAP *background = al_load_bitmap("Images/Background_space.tga");
+  ALLEGRO_BITMAP *background = al_load_bitmap("Images/Background_0.tga");
   if(renderer.main_font){
     /* Wait for player to press enter or terminate the program on welcoming */
     while(1){
@@ -46,7 +46,7 @@ int show_greeting(void){
 
 /* Show info about a game */
 int show_description(void){
-  ALLEGRO_BITMAP *background = al_load_bitmap("Images/Background_space.tga");
+  ALLEGRO_BITMAP *background = al_load_bitmap("Images/Background_0.tga");
   if(renderer.main_font){
     al_clear_to_color(al_map_rgb(0, 0, 0));
     al_draw_scaled_bitmap(background, 0, 0, al_get_bitmap_width(background), al_get_bitmap_height(background), 0, 0, renderer.view_width, renderer.view_height, 0);
@@ -74,7 +74,7 @@ int show_description(void){
 
 /* Request name from user and store it for later use */
 int request_name(void){
-  ALLEGRO_BITMAP *background = al_load_bitmap("Images/Background_space.tga");
+  ALLEGRO_BITMAP *background = al_load_bitmap("Images/Background_0.tga");
   if(renderer.main_font){
     /* Wait for player to finish typing in his/her username */
     while(1){

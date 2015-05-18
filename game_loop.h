@@ -7,7 +7,7 @@
 extern cpBool did_reach_teleport;
 
 /* Load minimum bitmap set and reset transforms */
-void init_critical(void);
+void init_critical(unsigned int level);
 /* Spawn all platforms on the level and add NPCs */
 void init_level(void);
 /* Run while:
