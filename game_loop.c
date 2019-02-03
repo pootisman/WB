@@ -43,21 +43,32 @@ unsigned int level_counter = 0;
 float display_x_offset = 0.0f;
 cpBool did_reach_teleport = cpFalse;
 
-inline void add_platform(cpVect position, double rotation){
+#ifndef DEBUG
+inline 
+#endif
+void add_platform(cpVect position, double rotation){
   add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, rotation, 2, RENDER_NUM_LAYERS - 2);
 }
-
-inline void add_hole(cpVect position){
+#ifndef DEBUG
+inline
+#endif
+void add_hole(cpVect position){
   ENT_PHYS_STATIC *temp = add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, 0.0, 0,  RENDER_NUM_LAYERS - 2);
   bind_trigger(temp, cpFalse);
 }
 
-inline void add_deathwall(cpVect position){
+#ifndef DEBUG
+inline
+#endif
+void add_deathwall(cpVect position){
   ENT_PHYS_STATIC *temp = add_entity_static(position, DEF_PLAT_WIDTH, DEF_PLAT_HEIGHT, 0.0, 0, RENDER_NUM_LAYERS - 2);
   bind_dead(temp);
 }
 
-inline void add_level_teleport(cpVect position){
+#ifndef DEBUG
+inline
+#endif
+void add_level_teleport(cpVect position){
   ENT_PHYS_STATIC *temp = add_entity_static(position, 500, renderer.view_height, 0.0, 0,  RENDER_NUM_LAYERS - 2);
   bind_level_seam(temp);
 }
@@ -115,7 +126,10 @@ void isolate_level(cpVect portal_position){
 /* Generate a chunk of our level
  * Inlined since we use it only here.
  */
-inline void gen_chunk(int start, int end){
+#ifndef DEBUG
+inline 
+#endif
+void gen_chunk(int start, int end){
   int i;
 
   for(i = start; i < end; i++){
@@ -224,7 +238,10 @@ void track_player(){
 /* Redraw the screen until given key is pressed
    Inline since we use it only here and do not
    need pointers of it */
-inline void draw_until_key(int switch_key){
+#ifndef DEBUG
+inline
+#endif
+void draw_until_key(int switch_key){
   while(1){
     render_layers();
     render_finalize_and_draw();
